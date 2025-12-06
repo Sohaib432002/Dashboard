@@ -1,25 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import { createBrowserRouter } from "react-router-dom";
+import Home from "./components/Home";
+import IncidencePrevalence from "./components/OptionsComponents/IncidencePrevalence";
+import LaboratoryResults from "./components/OptionsComponents/LaboratoryResults";
+import PatientDemographics from "./components/OptionsComponents/PatientDemographics";
+import RiskFactors from "./components/OptionsComponents/RiskFactors";
+import StoneCharacteristics from "./components/OptionsComponents/StoneCharacteristics";
+import SummaryMetrics from "./components/OptionsComponents/SummaryMetrics";
+import SymptomsClinicalData from "./components/OptionsComponents/SymptomsClinicalData";
+import TreatmentData from "./components/OptionsComponents/TreatmentData";
+import Visualizations from "./components/OptionsComponents/Visualizations";
+import "./index.css";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />,
+    children: [
+      { path: "PatientDemographics", element: <PatientDemographics /> },
+      { path: "StoneCharacteristics", element: <StoneCharacteristics /> },
+      { path: "IncidencePrevalence", element: <IncidencePrevalence /> },
+      { path: "SymptomsClinicalData", element: <SymptomsClinicalData /> },
+      { path: "TreatmentData", element: <TreatmentData /> },
+      { path: "LaboratoryResults", element: <LaboratoryResults /> },
+      { path: "RiskFactors", element: <RiskFactors /> },
+      { path: "Visualizations", element: <Visualizations /> },
+      { path: "SummaryMetrics", element: <SummaryMetrics /> },
+    ],
+  },
+]);
 
-export default App;
+export default router;
