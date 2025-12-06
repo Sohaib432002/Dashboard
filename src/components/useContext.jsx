@@ -1,4 +1,4 @@
-import axios from "axios";
+// Example in useContext.jsx
 import Papa from "papaparse";
 import { createContext, useEffect, useState } from "react";
 
@@ -8,22 +8,13 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    const url =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQURC23Qx43zoBScfctO0SQX2G9GyUUfKvWqlJpphGk9x24WvRwIRn2MC4bAL3qcGyd07TurpZ3gnIX/pub?output=csv";
-
-    axios.get(url).then((res) => {
-      Papa.parse(res.data, {
-        header: true,
-        complete: (result) => setData(result.data),
-      });
-    });
+    fetch(process.env.PUBLIC_URL + "/GallStone.csv")
+      .then((res) => res.text())
+      .then((csvText) => {
+        const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        setData(parsed.data);
+      })
+      .catch((err) => console.error("Failed to load CSV:", err));
   }, []);
-
-  console.log("check kro data aya k nahi →", data);
-
-  return (
-    <DataContext.Provider value={{ data }}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={{ data }}>{children}</DataContext.Provider>;
 };
