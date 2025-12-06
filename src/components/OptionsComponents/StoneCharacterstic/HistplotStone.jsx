@@ -1,40 +1,106 @@
 import { useContext, useMemo, useState } from "react";
-import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, Legend, Pie, PieChart as RePieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DataContext } from "../../useContext";
-import StoneStatusPie from "./StoneStatusPie";
+
+const COLORS = ["#22c55e", "#16a34a"]; // Green shades
+const BACKGROUND = "#2d5128"; // Theme background
+const TEXT_COLOR = "#e4eb9c";
+
+// Pie chart component
+const StoneStatusPie=({ data })=> {
+  const chartData = useMemo(() => {
+    const counts = { Yes: 0, No: 0 };
+    data.forEach((item) => {
+      const status = String(item["Gallstone Status"]).toLowerCase();
+      if (status === "1" || status === "yes") counts.Yes++;
+      else counts.No++;
+    });
+    return [
+      { name: "Yes", value: counts.Yes },
+      { name: "No", value: counts.No },
+    ];
+  }, [data]);
+
+  return (
+    <div
+      className="w-full h-[300px] sm:h-[350px] md:h-[400px]  p-3 "
+      style={{ background: BACKGROUND }}
+    >
+      <h2
+        className="text-center font-bold text-lg mb-2"
+        style={{ color: TEXT_COLOR }}
+      >
+        Gallstone Status Distribution
+      </h2>
+      <ResponsiveContainer width="100%" height="100%">
+        <RePieChart>
+          <Pie
+            data={chartData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius="70%"
+            label
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: BACKGROUND,
+              border: "1px solid #8da750",
+              color: TEXT_COLOR,
+              borderRadius: 8,
+              padding: 8,
+            }}
+          />
+          <Legend
+            verticalAlign="bottom"
+            height={36}
+            wrapperStyle={{ color: TEXT_COLOR }}
+          />
+        </RePieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 const HistplotStone = () => {
   const [minAge, setMinAge] = useState(0);
   const [maxAge, setMaxAge] = useState(100);
   const { data } = useContext(DataContext);
-
-  // Theme colors
   const colors = {
     dark: "#142c14",
     medium: "#2d5128",
     light: "#8da750",
     veryLight: "#e4eb9c",
+    soft: "#cfe0a1",
+    greenShade:'#16a34a'
   };
 
-  // Filter data by age
   const filtered = useMemo(() => {
-    return data.filter((item) => item.Age >= minAge && item.Age <= maxAge);
+    if (!data || data.length === 0) return [];
+    return data.filter((item) => {
+      const age = Number(item.Age);
+      return !isNaN(age) && age >= minAge && age <= maxAge;
+    });
   }, [data, minAge, maxAge]);
 
-  // Bar chart data
   const chartData = useMemo(() => {
-    let Yes = 0;
-    let No = 0;
+    let yesCount = 0;
+    let noCount = 0;
 
     filtered.forEach((item) => {
-      const status = item["Gallstone Status"];
-      if (status === 1) Yes++;
-      else No++;
+      const status = String(item["Gallstone Status"]).toLowerCase();
+      if (status === "1" || status === "yes") yesCount++;
+      else noCount++;
     });
 
     return [
-      { status: "Yes", count: Yes },
-      { status: "No", count: No },
+      { status: "Yes", count: yesCount },
+      { status: "No", count: noCount },
     ];
   }, [filtered]);
 
@@ -43,7 +109,6 @@ const HistplotStone = () => {
     borderRadius: 16,
     padding: 20,
     color: colors.veryLight,
-    boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
   };
 
   const inputStyle = {
@@ -57,7 +122,6 @@ const HistplotStone = () => {
 
   return (
     <div style={cardStyle} className="space-y-8">
-
       <h3 style={{ textAlign: "center", fontSize: "1.2rem", fontWeight: "600", marginBottom: 10 }}>
         Gallstone Status Distribution by Age
       </h3>
@@ -102,7 +166,7 @@ const HistplotStone = () => {
               }}
             />
             <Legend wrapperStyle={{ color: colors.veryLight }} />
-            <Bar dataKey="count" fill={colors.light} radius={[8, 8, 0, 0]} stroke={colors.soft} />
+            <Bar dataKey="count" fill={colors.greenShade} radius={[8, 8, 0, 0]} stroke={colors.light} />
           </BarChart>
         </ResponsiveContainer>
       </div>

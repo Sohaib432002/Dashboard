@@ -21,8 +21,9 @@ const Home = () => {
 
       {/* Mobile Toggle Button */}
       <button
-        className="md:hidden fixed top-3  left-4 z-60 bg-[#537b2f] text-white p-2 rounded-lg shadow"
+        className="md:hidden fixed top-5  left-4 z-[60] bg-[#537b2f] text-white p-2 rounded-lg shadow"
         onClick={() => setOpen(!open)}
+
       >
         <Menu size={24} />
       </button>
@@ -38,7 +39,7 @@ const Home = () => {
       {/* Sidebar */}
       <div
         className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-[#2d5128] text-white z-50
+          fixed md:static top-0 left-0 h-full w-64 bg-[#2d5128] text-white z-[60]
           transform transition-transform duration-300
           ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
@@ -54,7 +55,7 @@ const Home = () => {
         {/* Profile Section */}
         <div className="flex flex-col items-center p-6 mt-6 md:mt-0">
           <img
-            src="./NU_logo.png"
+            src={`${process.env.PUBLIC_URL}/NU_logo.png`}
             alt="Logo"
             className="w-20 h-20 rounded-full mb-3"
           />
@@ -66,7 +67,7 @@ const Home = () => {
           {btnsList.map((item) => (
             <Link
               key={item}
-              to={item}
+              to={`/${item}`}
               onClick={() => setOpen(false)}
             >
               <div className="bg-[#142c14] my-2 border border-[#8da750] hover:bg-[#537b2f] transition-colors rounded-lg cursor-pointer">

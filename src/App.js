@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import Home from "./components/Home";
 import IncidencePrevalence from "./components/OptionsComponents/IncidencePrevalence";
 import LaboratoryResults from "./components/OptionsComponents/LaboratoryResults";
@@ -11,11 +11,12 @@ import TreatmentData from "./components/OptionsComponents/TreatmentData";
 import Visualizations from "./components/OptionsComponents/Visualizations";
 import "./index.css";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <Home />,
     children: [
+      { path: "/", element: <PatientDemographics /> },
       { path: "PatientDemographics", element: <PatientDemographics /> },
       { path: "StoneCharacteristics", element: <StoneCharacteristics /> },
       { path: "IncidencePrevalence", element: <IncidencePrevalence /> },

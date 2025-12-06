@@ -38,7 +38,7 @@ const StoneCharacteristics = () => {
         >
           Gallstone Status Distribution by Age
         </h2>
-        {data.length !== 0 ? <HistplotStone data={data} /> : <Loader />}
+        {Object.keys(data).length !== 0 ? <HistplotStone data={data} /> : <Loader />}
       </div>
     </div>
   );
