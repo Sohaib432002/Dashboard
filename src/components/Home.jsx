@@ -1,29 +1,29 @@
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { Link, Outlet } from "react-router-dom";
-import DashboardNavbar from "./Navbar";
+import { Menu, X } from 'lucide-react'
+import { useState } from 'react'
+import { Link, Outlet } from 'react-router-dom'
+import DashboardNavbar from './Navbar'
+
 const btnsList = [
-  "PatientDemographics",
-  "StoneCharacteristics",
-  "IncidencePrevalence",
-  "SymptomsClinicalData",
-  "TreatmentData",
-  "LaboratoryResults",
-  "RiskFactors",
-  "Visualizations",
-  "SummaryMetrics",
-];
+  'PatientDemographics',
+  'StoneCharacteristics',
+  'IncidencePrevalence',
+  'SymptomsClinicalData',
+  'TreatmentData',
+  'LaboratoryResults',
+  'RiskFactors',
+  'Visualizations',
+  'SummaryMetrics',
+]
 
 const Home = () => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="flex h-screen bg-[#e4eb9c]">
+  const [open, setOpen] = useState(false)
 
+  return (
+    <div className="flex h-screen bg-gradient-to-br from-[#000046] to-[#1cb5e0]">
       {/* Mobile Toggle Button */}
       <button
-        className="md:hidden fixed top-5  left-4 z-[60] bg-[#537b2f] text-white p-2 rounded-lg shadow"
+        className="md:hidden fixed top-5 left-4 z-[60] bg-gradient-to-br from-[#000046] to-[#1cb5e0] text-white p-2 rounded-lg shadow"
         onClick={() => setOpen(!open)}
-
       >
         <Menu size={24} />
       </button>
@@ -39,9 +39,9 @@ const Home = () => {
       {/* Sidebar */}
       <div
         className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-[#2d5128] text-white z-[60]
+          fixed md:static top-0 left-0 h-full w-64 bg-gradient-to-br from-[#000046] to-[#1cb5e0] text-white z-[60]
           transform transition-transform duration-300
-          ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Close Button for Mobile */}
@@ -65,13 +65,9 @@ const Home = () => {
         {/* Menu Links */}
         <div className="flex-1 mt-6 px-4 space-y-3 overflow-y-auto pb-10">
           {btnsList.map((item) => (
-            <Link
-              key={item}
-              to={`/${item}`}
-              onClick={() => setOpen(false)}
-            >
-              <div className="bg-[#142c14] my-2 border border-[#8da750] hover:bg-[#537b2f] transition-colors rounded-lg cursor-pointer">
-                <button className="w-full  text-left px-4 py-3 font-medium hover:text-white">
+            <Link key={item} to={`/${item}`} onClick={() => setOpen(false)}>
+              <div className="bg-gradient-to-br from-[#000046] to-[#1cb5e0] my-2 border border-white hover:brightness-125 transition-colors rounded-lg cursor-pointer">
+                <button className="w-full text-left px-4 py-3 font-medium hover:text-white">
                   {item}
                 </button>
               </div>
@@ -85,9 +81,8 @@ const Home = () => {
         <DashboardNavbar />
         <Outlet />
       </div>
-
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
