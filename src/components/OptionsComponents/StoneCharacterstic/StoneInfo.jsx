@@ -7,7 +7,7 @@ const StoneInfo = () => {
   const cardClasses =
     'p-6 rounded-xl shadow-lg bg-gradient-to-br from-[#000046] to-[#1cb5e0] text-white space-y-6'
 
-  const sectionTitleClasses = 'text-[#a2d15f] font-semibold text-lg mb-2'
+  const sectionTitleClasses = 'text-[#00bfff] font-semibold text-lg mb-2'
 
   const tableClasses = 'w-full border-collapse mt-2'
   const thClasses = 'border border-[#a2d15f] px-3 py-2 bg-[#000046] text-white'
@@ -15,7 +15,7 @@ const StoneInfo = () => {
 
   return (
     <div className={cardClasses}>
-      <h1 className="text-center text-2xl font-bold text-[#a2d15f] mb-4">
+      <h1 className="text-center text-2xl font-bold text-[#ffffff] mb-4">
         Kidney / Gallstone Characteristics Overview
       </h1>
 
