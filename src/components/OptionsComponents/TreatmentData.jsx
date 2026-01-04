@@ -50,14 +50,26 @@ const inputStyle = {
 const TreatmentData = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
+  const [gallstoneFilter, setGallstoneFilter] = useState('All') // New filter
   const { data } = useContext(DataContext)
 
+  /* ================= FILTER DATA ================= */
   const filtered = useMemo(
-    () => data.filter((item) => Number(item.Age || 0) >= minAge && Number(item.Age || 0) <= maxAge),
-    [data, minAge, maxAge]
+    () =>
+      data.filter((item) => {
+        const age = Number(item.Age || 0)
+        const ageMatch = age >= minAge && age <= maxAge
+
+        let gallstoneMatch = true
+        if (gallstoneFilter === 'Yes') gallstoneMatch = item['Gallstone Status'] === '1'
+        if (gallstoneFilter === 'No') gallstoneMatch = item['Gallstone Status'] === '0'
+
+        return ageMatch && gallstoneMatch
+      }),
+    [data, minAge, maxAge, gallstoneFilter]
   )
 
-  // Pie Data: Gallstone Status
+  /* ================= PIE DATA: Gallstone Status ================= */
   const pieData = useMemo(() => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
@@ -70,7 +82,7 @@ const TreatmentData = () => {
     ]
   }, [filtered])
 
-  // Bar Data: BMI & TBW
+  /* ================= BAR DATA: BMI & TBW ================= */
   const clinicalData = useMemo(
     () =>
       filtered.map((item, idx) => ({
@@ -81,7 +93,7 @@ const TreatmentData = () => {
     [filtered]
   )
 
-  // Pie Data: Fat Distribution
+  /* ================= PIE DATA: Fat Distribution ================= */
   const fatData = useMemo(() => {
     const counts = { Visceral: 0, Total: 0 }
     filtered.forEach((item) => {
@@ -125,6 +137,18 @@ const TreatmentData = () => {
             onChange={(e) => setMaxAge(Number(e.target.value))}
             style={inputStyle}
           />
+        </div>
+        <div>
+          <label>Gallstone:</label>
+          <select
+            value={gallstoneFilter}
+            onChange={(e) => setGallstoneFilter(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="All">All</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
         </div>
       </div>
 
@@ -237,7 +261,8 @@ const TreatmentData = () => {
         <div style={{ ...cardStyle, flex: 1 }}>
           <h4 style={{ color: THEME.accent1, marginBottom: 10 }}>Gallstone Status Analysis</h4>
           <p style={{ color: THEME.text }}>
-            Shows how many patients have gallstones vs no gallstones in the selected age range.
+            Shows how many patients have gallstones vs no gallstones in the selected age range and
+            filter.
           </p>
         </div>
         <div style={{ ...cardStyle, flex: 1 }}>
