@@ -1,5 +1,15 @@
+// LipidsLine.jsx
 import { useMemo, useState } from 'react'
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
+// ================= THEME =================
+const THEME = {
+  bg: '#0f172a', // page background
+  card: '#1e293b', // card background
+  text: '#e5e7eb', // main text
+  muted: '#94a3b8', // axis / border
+  lineColors: ['#38bdf8', '#00a3e0', '#0056b3', '#000046'], // TC, LDL, HDL, Triglyceride
+}
 
 export default function LipidsLine({ data }) {
   const [ageRange, setAgeRange] = useState('All')
@@ -8,6 +18,7 @@ export default function LipidsLine({ data }) {
   const AGE_OPTIONS = ['All', '0-20', '21-40', '41-60', '61-80', '81-100']
   const GENDER_OPTIONS = ['All', 'Male', 'Female']
 
+  // ================= FILTER DATA =================
   const filteredData = useMemo(() => {
     return data.filter((row) => {
       let ageOk = true
@@ -15,11 +26,11 @@ export default function LipidsLine({ data }) {
 
       if (ageRange !== 'All') {
         const [min, max] = ageRange.split('-').map(Number)
-        ageOk = row.Age >= min && row.Age <= max
+        ageOk = Number(row.Age) >= min && Number(row.Age) <= max
       }
 
       if (gender !== 'All') {
-        genderOk = gender === 'Male' ? row.Gender === 0 : row.Gender === 1
+        genderOk = gender === 'Male' ? Number(row.Gender) === 0 : Number(row.Gender) === 1
       }
 
       return ageOk && genderOk
@@ -34,48 +45,100 @@ export default function LipidsLine({ data }) {
     Triglyceride: row.Triglyceride,
   }))
 
-  return (
-    <div className="w-full bg-gradient-to-br from-[#000046] to-[#1cb5e0] p-4 sm:p-5 rounded-lg shadow-lg text-white">
-      {/* HEADER */}
-      <h3 className="text-lg sm:text-xl font-semibold mb-4">Lipid Profile Trends</h3>
+  // ================= STYLES =================
+  const cardStyle = {
+    background: THEME.card,
+    borderRadius: 16,
+    padding: 20,
+    color: THEME.text,
+    boxShadow: '0 8px 20px rgba(56,189,248,0.15)',
+  }
 
-      {/* FILTERS */}
-      <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-6 mb-4 sm:mb-6">
-        <div className="flex flex-col flex-1">
-          <label className="text-white font-medium text-sm mb-1">Age Range</label>
-          <select
-            value={ageRange}
-            onChange={(e) => setAgeRange(e.target.value)}
-            className="px-2 sm:px-3 bg-gradient-to-br from-[#000046]/70 to-[#1cb5e0]/70 text-white py-2 border border-white rounded-lg shadow-sm focus:ring-2 focus:ring-[#1cb5e0] focus:border-white text-sm sm:text-base"
-          >
+  const filterContainerStyle = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 15,
+    marginBottom: 20,
+    justifyContent: 'center',
+  }
+
+  const filterItemStyle = { display: 'flex', flexDirection: 'column', width: 150 }
+
+  const inputStyle = {
+    padding: '8px 12px',
+    borderRadius: 8,
+    background: THEME.bg,
+    color: THEME.text,
+    border: `1px solid ${THEME.muted}`,
+    outline: 'none',
+    width: '100%',
+  }
+
+  const titleStyle = {
+    textAlign: 'center',
+    marginBottom: 15,
+    fontWeight: 600,
+    color: THEME.text,
+    fontSize: 16,
+  }
+
+  return (
+    <div style={cardStyle}>
+      {/* ================= HEADER ================= */}
+      <div style={titleStyle}>Lipid Profile Trends</div>
+
+      {/* ================= FILTERS ================= */}
+      <div style={filterContainerStyle}>
+        <div style={filterItemStyle}>
+          <label style={{ marginBottom: 5 }}>Age Range</label>
+          <select value={ageRange} onChange={(e) => setAgeRange(e.target.value)} style={inputStyle}>
             {AGE_OPTIONS.map((opt) => (
-              <option key={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterItemStyle}>
+          <label style={{ marginBottom: 5 }}>Gender</label>
+          <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
+            {GENDER_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* LINE CHART */}
-      <div className="w-full h-[280px] sm:h-[350px] md:h-[400px]">
+      {/* ================= LINE CHART ================= */}
+      <div style={{ width: '100%', height: 360 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
-            <XAxis dataKey="index" stroke="#ffffff" tick={{ fill: '#ffffff', fontSize: 12 }} />
-            <YAxis stroke="#ffffff" tick={{ fill: '#ffffff', fontSize: 12 }} />
+            <XAxis dataKey="index" stroke={THEME.text} tick={{ fill: THEME.text, fontSize: 12 }} />
+            <YAxis stroke={THEME.text} tick={{ fill: THEME.text, fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                borderRadius: '10px',
-                padding: '10px',
-                backgroundColor: '#000046',
-                border: '1px solid #1cb5e0',
-                color: '#ffffff',
+                borderRadius: 10,
+                padding: 10,
+                backgroundColor: THEME.card,
+                border: `1px solid ${THEME.lineColors[0]}`,
+                color: THEME.text,
+                fontSize: '0.875rem',
               }}
             />
-            <Legend wrapperStyle={{ color: '#ffffff', fontWeight: 600, fontSize: 12 }} />
+            <Legend wrapperStyle={{ color: THEME.text, fontWeight: 600, fontSize: 12 }} />
 
-            <Line type="monotone" dataKey="TC" stroke="#1cb5e0" strokeWidth={2} />
-            <Line type="monotone" dataKey="LDL" stroke="#00a3e0" strokeWidth={2} />
-            <Line type="monotone" dataKey="HDL" stroke="#0056b3" strokeWidth={2} />
-            <Line type="monotone" dataKey="Triglyceride" stroke="#000046" strokeWidth={2} />
+            <Line type="monotone" dataKey="TC" stroke={THEME.lineColors[0]} strokeWidth={2} />
+            <Line type="monotone" dataKey="LDL" stroke={THEME.lineColors[1]} strokeWidth={2} />
+            <Line type="monotone" dataKey="HDL" stroke={THEME.lineColors[2]} strokeWidth={2} />
+            <Line
+              type="monotone"
+              dataKey="Triglyceride"
+              stroke={THEME.lineColors[3]}
+              strokeWidth={2}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

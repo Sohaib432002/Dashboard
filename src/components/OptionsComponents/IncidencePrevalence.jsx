@@ -14,22 +14,28 @@ import {
 import Loader from '../LoadingSpinner'
 import { DataContext } from '../useContext'
 
-// Gradient theme
-const colors = {
-  gradientStart: '#000046',
-  gradientEnd: '#1cb5e0',
-  soft: '#00c6ff',
-  light: '#33d6ff',
-  veryLight: '#e0f7ff',
+/* ================= THEME ================= */
+const THEME = {
+  bg: '#0f172a',
+  card: '#020617',
+  grid: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent1: '#38bdf8', // Blue
+  accent2: '#22c55e', // Green
+  accent3: '#f97316', // Orange
+  accent4: '#a855f7', // Purple
 }
 
-const COLORS = [colors.light, colors.soft]
+const PIE_COLORS = [THEME.accent1, THEME.accent2]
+const BAR_COLORS = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 
 const IncidencePrevalence = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
   const { data } = useContext(DataContext)
 
+  /* ================= FILTER DATA ================= */
   const filtered = useMemo(
     () =>
       data.filter((item) => {
@@ -39,6 +45,7 @@ const IncidencePrevalence = () => {
     [data, minAge, maxAge]
   )
 
+  /* ================= PIE DATA ================= */
   const pieData = useMemo(() => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
@@ -51,6 +58,7 @@ const IncidencePrevalence = () => {
     ]
   }, [filtered])
 
+  /* ================= BAR DATA ================= */
   const barData = useMemo(() => {
     const bins = { '0-30': 0, '31-40': 0, '41-50': 0, '51-60': 0, '61+': 0 }
     filtered.forEach((item) => {
@@ -63,7 +71,10 @@ const IncidencePrevalence = () => {
         else bins['61+']++
       }
     })
-    return Object.keys(bins).map((key) => ({ ageRange: key, count: bins[key] }))
+    return Object.keys(bins).map((key) => ({
+      ageRange: key,
+      count: bins[key],
+    }))
   }, [filtered])
 
   if (data.length === 0) return <Loader />
@@ -73,37 +84,46 @@ const IncidencePrevalence = () => {
   const prevalencePercent =
     totalPatients > 0 ? ((totalGallstone / totalPatients) * 100).toFixed(1) : 0
 
+  /* ================= STYLES ================= */
   const cardStyle = {
-    background: `linear-gradient(135deg, ${colors.gradientStart}, ${colors.gradientEnd})`,
+    background: THEME.card,
     borderRadius: 16,
     padding: 20,
-    color: colors.veryLight,
-    boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+    color: THEME.text,
+    boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
   }
 
   const inputStyle = {
     padding: '8px 12px',
     borderRadius: 8,
     marginRight: 15,
-    background: colors.gradientStart,
-    color: colors.veryLight,
-    border: `1px solid ${colors.soft}`,
+    background: THEME.bg,
+    color: THEME.text,
+    border: `1px solid ${THEME.accent1}`,
   }
 
   return (
     <div
       style={{
         padding: 25,
-        background: `linear-gradient(135deg, ${colors.gradientStart}, ${colors.gradientEnd})`,
+        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
         minHeight: '100vh',
       }}
     >
-      <h2 style={{ color: colors.veryLight, fontSize: 28, marginBottom: 20 }}>
+      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>
         Gallstone Incidence & Prevalence
       </h2>
 
-      {/* Filters */}
-      <div style={{ ...cardStyle, display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 30 }}>
+      {/* ================= FILTERS ================= */}
+      <div
+        style={{
+          ...cardStyle,
+          display: 'flex',
+          gap: 20,
+          flexWrap: 'wrap',
+          marginBottom: 30,
+        }}
+      >
         <div>
           <label>Min Age:</label>
           <input
@@ -113,6 +133,7 @@ const IncidencePrevalence = () => {
             style={inputStyle}
           />
         </div>
+
         <div>
           <label>Max Age:</label>
           <input
@@ -124,11 +145,11 @@ const IncidencePrevalence = () => {
         </div>
       </div>
 
-      {/* Charts Row */}
+      {/* ================= CHARTS ================= */}
       <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* Pie Chart */}
+        {/* ===== PIE CHART ===== */}
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Overall Prevalence</h3>
+          <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Overall Prevalence</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -138,58 +159,67 @@ const IncidencePrevalence = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label
+                label={({ name, value }) => `${name}: ${value}`}
               >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {pieData.map((_, index) => (
+                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ backgroundColor: colors.gradientStart, color: colors.veryLight }}
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent1}`,
+                  color: THEME.text,
+                }}
               />
-              <Legend verticalAlign="bottom" wrapperStyle={{ color: colors.veryLight }} />
+              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Bar Chart */}
+        {/* ===== BAR CHART ===== */}
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Prevalence by Age Group</h3>
+          <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>Prevalence by Age Group</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData}>
-              <XAxis dataKey="ageRange" stroke={colors.veryLight} />
-              <YAxis stroke={colors.veryLight} />
+              <XAxis dataKey="ageRange" stroke={THEME.muted} />
+              <YAxis stroke={THEME.muted} />
+
               <Tooltip
-                contentStyle={{ backgroundColor: colors.gradientStart, color: colors.veryLight }}
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent2}`,
+                  color: THEME.text,
+                }}
               />
-              <Legend wrapperStyle={{ color: colors.veryLight }} />
-              <Bar dataKey="count" fill={colors.soft} radius={[8, 8, 0, 0]} stroke={colors.light} />
+              <Legend wrapperStyle={{ color: THEME.text }} />
+
+              <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                {barData.map((_, index) => (
+                  <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Analysis */}
+      {/* ================= ANALYSIS ================= */}
       <div style={{ ...cardStyle }}>
-        <h3 style={{ color: colors.light, marginBottom: 10 }}>Analysis & Summary</h3>
-        <p style={{ color: colors.veryLight }}>
+        <h3 style={{ color: THEME.accent3, marginBottom: 10 }}>Analysis & Summary</h3>
+        <p>
           Total patients in selected age range: <strong>{totalPatients}</strong>
         </p>
-        <p style={{ color: colors.veryLight }}>
+        <p>
           Patients with Gallstones: <strong>{totalGallstone}</strong>
         </p>
-        <p style={{ color: colors.veryLight }}>
+        <p>
           Overall Prevalence: <strong>{prevalencePercent}%</strong>
         </p>
-        <p style={{ color: colors.veryLight }}>
-          The bar chart shows which age ranges have higher prevalence.
-        </p>
-        <p style={{ color: colors.veryLight }}>
-          Filters allow dynamic adjustment of age range. Charts and statistics update automatically.
-        </p>
-        <p style={{ color: colors.veryLight, fontSize: 12, marginTop: 10 }}>
-          *Note: Incidence analysis requires time-based data. Current dataset supports prevalence
-          only.
+        <p>The bar chart shows which age ranges have higher prevalence.</p>
+        <p>Filters dynamically update charts and statistics.</p>
+        <p style={{ fontSize: 12, color: THEME.muted, marginTop: 10 }}>
+          *Incidence analysis requires time-based data. Current dataset supports prevalence only.
         </p>
       </div>
     </div>

@@ -1,14 +1,23 @@
+// Histogram.jsx
 import { useContext, useState } from 'react'
-import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts'
 import { DataContext } from '../../useContext'
+
+// ================= THEME =================
+const THEME = {
+  bg: '#0f172a', // page background
+  card: '#1e293b', // card background
+  text: '#e5e7eb', // main text
+  muted: '#94a3b8', // axis / border
+  barColors: ['#38bdf8', '#1c92f2'], // gradient / bars
+}
 
 const Histogram = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
-
   const { data } = useContext(DataContext)
 
-  // Age bins
+  // ================= AGE BINS =================
   const ageBins = Array.from({ length: 10 }, (_, i) => ({
     range: `${i * 10}-${i * 10 + 10}`,
     start: i * 10,
@@ -16,7 +25,6 @@ const Histogram = () => {
     count: 0,
   }))
 
-  // Count patients in each bin
   data.forEach((person) => {
     const age = parseInt(person['Age'])
     if (!isNaN(age)) {
@@ -25,62 +33,93 @@ const Histogram = () => {
     }
   })
 
-  // Filter by min/max age
   const chartData = ageBins.filter((bin) => bin.start >= minAge && bin.end <= maxAge)
 
+  // ================= STYLES =================
+  const cardStyle = {
+    background: THEME.card,
+    borderRadius: 16,
+    padding: 20,
+    color: THEME.text,
+    boxShadow: '0 8px 20px rgba(56,189,248,0.15)',
+  }
+
+  const filterContainerStyle = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 15,
+    marginBottom: 20,
+    justifyContent: 'center',
+  }
+
+  const filterItemStyle = { display: 'flex', flexDirection: 'column', width: 150 }
+
+  const inputStyle = {
+    padding: '8px 12px',
+    borderRadius: 8,
+    background: THEME.bg,
+    color: THEME.text,
+    border: `1px solid ${THEME.muted}`,
+    outline: 'none',
+    width: '100%',
+  }
+
+  const titleStyle = {
+    textAlign: 'center',
+    marginBottom: 15,
+    fontWeight: 600,
+    color: THEME.text,
+    fontSize: 16,
+  }
+
   return (
-    <div className="w-full bg-gradient-to-br from-[#000046] to-[#1cb5e0] p-3 sm:p-5 rounded-lg shadow-lg text-white">
-      {/* Filters */}
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-4 items-center justify-center">
-        {/* Min Age */}
-        <div className="flex flex-col w-full sm:w-40">
-          <label className="mb-1 text-white font-medium text-sm sm:text-base">Min Age</label>
+    <div style={cardStyle}>
+      {/* ================= FILTERS ================= */}
+      <div style={filterContainerStyle}>
+        <div style={filterItemStyle}>
+          <label style={{ marginBottom: 5 }}>Min Age</label>
           <input
             type="number"
             value={minAge}
             onChange={(e) => setMinAge(parseInt(e.target.value))}
-            className="px-2 sm:px-3 py-2 bg-gradient-to-br from-[#000046]/70 to-[#1cb5e0]/70 border border-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1cb5e0] text-white text-sm sm:text-base"
+            style={inputStyle}
             min={0}
           />
         </div>
 
-        {/* Max Age */}
-        <div className="flex flex-col w-full sm:w-40">
-          <label className="mb-1 text-white font-medium text-sm sm:text-base">Max Age</label>
+        <div style={filterItemStyle}>
+          <label style={{ marginBottom: 5 }}>Max Age</label>
           <input
             type="number"
             value={maxAge}
             onChange={(e) => setMaxAge(parseInt(e.target.value))}
-            className="px-2 sm:px-3 py-2 bg-gradient-to-br from-[#000046]/70 to-[#1cb5e0]/70 border border-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1cb5e0] text-white text-sm sm:text-base"
+            style={inputStyle}
             min={0}
           />
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="w-full h-[300px] sm:h-[330px] md:h-[360px] lg:h-[400px]">
+      {/* ================= BAR CHART ================= */}
+      <div style={{ width: '100%', height: 320 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
-            <XAxis dataKey="range" stroke="#ffffff" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#ffffff" tick={{ fontSize: 12 }} />
+            <XAxis dataKey="range" stroke={THEME.text} tick={{ fontSize: 12 }} />
+            <YAxis stroke={THEME.text} tick={{ fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                borderRadius: '10px',
-                padding: '10px',
-                backgroundColor: '#000046',
-                border: '1px solid #1cb5e0',
-                color: '#ffffff',
+                borderRadius: 10,
+                padding: 10,
+                backgroundColor: THEME.card,
+                border: `1px solid ${THEME.barColors[0]}`,
+                color: THEME.text,
                 fontSize: '0.875rem',
               }}
             />
-            <Legend wrapperStyle={{ color: '#ffffff', fontSize: 12 }} />
-            <Bar dataKey="count" radius={[8, 8, 0, 0]} fill="url(#barGradient)" stroke="#ffffff">
-              <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1cb5e0" />
-                  <stop offset="100%" stopColor="#000046" />
-                </linearGradient>
-              </defs>
+            <Legend wrapperStyle={{ color: THEME.text, fontSize: 12 }} />
+            <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+              {chartData.map((_, index) => (
+                <Cell key={index} fill={THEME.barColors[index % THEME.barColors.length]} />
+              ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>

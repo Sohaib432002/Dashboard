@@ -1,3 +1,4 @@
+// RiskFactors.jsx
 import { useContext, useMemo, useState } from 'react'
 import {
   Bar,
@@ -9,26 +10,40 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Cell,
 } from 'recharts'
 import { DataContext } from '../useContext'
 
-// New blue theme
-const colors = {
-  dark: '#000046', // main background start
-  medium: '#0b3d91', // card background
-  soft: '#1cb5e0', // highlights / shadows
-  light: '#6ad1f0', // chart fills / accents
-  veryLight: '#e0f7ff', // text
+// ================= SAME THEME =================
+const THEME = {
+  bg: '#0f172a',
+  card: '#020617',
+  grid: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent1: '#38bdf8',
+  accent2: '#22c55e',
+  accent3: '#f97316',
+  accent4: '#a855f7',
 }
 
+// ================= STYLES =================
 const cardStyle = {
-  background: colors.medium,
-  padding: 22,
+  background: THEME.card,
+  padding: 25,
   borderRadius: 16,
-  boxShadow: `0 6px 20px ${colors.soft}55`,
-  marginTop: 28,
-  color: colors.veryLight,
-  border: `1px solid ${colors.soft}22`,
+  boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
+  color: THEME.text,
+  marginBottom: 30,
+}
+
+const filterInputStyle = {
+  padding: '8px 12px',
+  borderRadius: 8,
+  marginRight: 15,
+  background: THEME.bg,
+  color: THEME.text,
+  border: `1px solid ${THEME.accent1}`,
 }
 
 const RiskFactors = () => {
@@ -38,16 +53,21 @@ const RiskFactors = () => {
 
   const { data } = useContext(DataContext)
 
-  // Filter Data
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const age = Number(item['Age'])
-      const g = item['Gender']
-      return age >= minAge && age <= maxAge && (gender === 'all' || g == gender)
-    })
-  }, [data, minAge, maxAge, gender])
+  // ================= FILTERED DATA =================
+  const filteredData = useMemo(
+    () =>
+      data.filter((item) => {
+        const age = Number(item['Age'] || 0)
+        let genderValue = item['Gender']
+        if (genderValue === '0' || genderValue?.toLowerCase() === 'male') genderValue = '0'
+        if (genderValue === '1' || genderValue?.toLowerCase() === 'female') genderValue = '1'
 
-  // Helper for chart data
+        return age >= minAge && age <= maxAge && (gender === 'all' || genderValue === gender)
+      }),
+    [data, minAge, maxAge, gender]
+  )
+
+  // ================= CHART DATA =================
   const makeChartData = (key) =>
     filteredData.map((item, index) => ({
       id: index + 1,
@@ -62,82 +82,49 @@ const RiskFactors = () => {
     <div
       style={{
         padding: 25,
-        background: `linear-gradient(to bottom, ${colors.dark}, ${colors.soft})`,
+        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
         minHeight: '100vh',
       }}
     >
-      {/* ------------ HEADER ------------ */}
-      <div
-        style={{
-          padding: '25px 30px',
-          background: colors.medium,
-          color: colors.veryLight,
-          borderRadius: 16,
-          boxShadow: `0 4px 20px ${colors.soft}55`,
-          border: `1px solid ${colors.soft}33`,
-        }}
-      >
-        <h1 style={{ fontSize: 34, marginBottom: 10, fontWeight: 600 }}>Risk Factors Analysis</h1>
+      {/* ================= HEADER ================= */}
+      <div style={{ ...cardStyle, padding: '25px 30px', boxShadow: '0 4px 20px rgba(0,0,0,0.35)' }}>
+        <h1 style={{ fontSize: 34, fontWeight: 600 }}>Risk Factors Analysis</h1>
         <p style={{ fontSize: 17, opacity: 0.9, lineHeight: 1.5 }}>
           Visual breakdown of BMI, Cholesterol, and Glucose levels to identify health-related risk
           factors among patients.
         </p>
       </div>
 
-      {/* ------------ FILTER CARD ------------ */}
+      {/* ================= FILTERS ================= */}
       <div style={cardStyle}>
-        <h2 style={{ color: colors.veryLight, marginBottom: 12 }}>Filters</h2>
-        <div style={{ display: 'flex', gap: 50, flexWrap: 'wrap' }}>
+        <h2 style={{ marginBottom: 12 }}>Filters</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
           <div>
-            <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Min Age</label>
+            <label>Min Age:</label>
             <input
               type="number"
               value={minAge}
               onChange={(e) => setMinAge(Number(e.target.value))}
-              style={{
-                marginLeft: 10,
-                padding: 8,
-                border: `1px solid ${colors.light}`,
-                borderRadius: 8,
-                outline: 'none',
-                background: colors.dark,
-                color: colors.veryLight,
-              }}
+              style={filterInputStyle}
             />
           </div>
 
           <div>
-            <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Max Age</label>
+            <label>Max Age:</label>
             <input
               type="number"
               value={maxAge}
               onChange={(e) => setMaxAge(Number(e.target.value))}
-              style={{
-                marginLeft: 10,
-                padding: 8,
-                border: `1px solid ${colors.light}`,
-                borderRadius: 8,
-                outline: 'none',
-                background: colors.dark,
-                color: colors.veryLight,
-              }}
+              style={filterInputStyle}
             />
           </div>
 
           <div>
-            <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Gender</label>
+            <label>Gender:</label>
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              style={{
-                marginLeft: 10,
-                padding: 8,
-                borderRadius: 8,
-                border: `1px solid ${colors.light}`,
-                background: colors.dark,
-                color: colors.veryLight,
-                outline: 'none',
-              }}
+              style={filterInputStyle}
             >
               <option value="all">All</option>
               <option value="0">Male</option>
@@ -147,56 +134,69 @@ const RiskFactors = () => {
         </div>
       </div>
 
-      {/* ------------ BMI CARD ------------ */}
+      {/* ================= BMI BAR ================= */}
       <div style={cardStyle}>
-        <h2 style={{ color: colors.veryLight }}>BMI (Body Mass Index)</h2>
-        <p style={{ marginBottom: 10, opacity: 0.9 }}>
-          High BMI values indicate higher chances of obesity-related complications.
-        </p>
-
-        <ResponsiveContainer width="100%" height={300}>
+        <h2 style={{ color: THEME.accent1 }}>BMI (Body Mass Index)</h2>
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart data={bmiData}>
-            <CartesianGrid strokeDasharray="3 3" stroke={colors.light} />
-            <XAxis dataKey="id" stroke={colors.veryLight} />
-            <YAxis stroke={colors.veryLight} />
-            <Tooltip contentStyle={{ background: colors.medium, borderRadius: 10 }} />
-            <Bar dataKey="value" fill={colors.light} />
+            <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+            <XAxis dataKey="id" stroke={THEME.muted} />
+            <YAxis stroke={THEME.muted} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: THEME.card,
+                border: `1px solid ${THEME.accent1}`,
+                color: THEME.text,
+              }}
+            />
+            <Bar dataKey="value">
+              {bmiData.map((_, i) => (
+                <Cell
+                  key={i}
+                  fill={[THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4][i % 4]}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* ------------ CHOLESTEROL ------------ */}
+      {/* ================= CHOLESTEROL LINE ================= */}
       <div style={cardStyle}>
-        <h2 style={{ color: colors.veryLight }}>Total Cholesterol</h2>
-        <p style={{ marginBottom: 10, opacity: 0.9 }}>
-          Cholesterol helps assess fatty buildup or cardiovascular risk.
-        </p>
-
-        <ResponsiveContainer width="100%" height={300}>
+        <h2 style={{ color: THEME.accent2 }}>Total Cholesterol</h2>
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={cholesterolData}>
-            <CartesianGrid strokeDasharray="3 3" stroke={colors.light} />
-            <XAxis dataKey="id" stroke={colors.veryLight} />
-            <YAxis stroke={colors.veryLight} />
-            <Tooltip contentStyle={{ background: colors.medium, borderRadius: 10 }} />
-            <Line type="monotone" dataKey="value" stroke={colors.veryLight} strokeWidth={3} />
+            <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+            <XAxis dataKey="id" stroke={THEME.muted} />
+            <YAxis stroke={THEME.muted} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: THEME.card,
+                border: `1px solid ${THEME.accent2}`,
+                color: THEME.text,
+              }}
+            />
+            <Line type="monotone" dataKey="value" stroke={THEME.accent2} strokeWidth={3} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* ------------ GLUCOSE ------------ */}
+      {/* ================= GLUCOSE LINE ================= */}
       <div style={cardStyle}>
-        <h2 style={{ color: colors.veryLight }}>Glucose Levels</h2>
-        <p style={{ marginBottom: 10, opacity: 0.9 }}>
-          Elevated glucose levels reflect diabetes-related health concerns.
-        </p>
-
-        <ResponsiveContainer width="100%" height={300}>
+        <h2 style={{ color: THEME.accent3 }}>Glucose Levels</h2>
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={glucoseData}>
-            <CartesianGrid strokeDasharray="3 3" stroke={colors.light} />
-            <XAxis dataKey="id" stroke={colors.veryLight} />
-            <YAxis stroke={colors.veryLight} />
-            <Tooltip contentStyle={{ background: colors.medium, borderRadius: 10 }} />
-            <Line type="monotone" dataKey="value" stroke={colors.soft} strokeWidth={3} />
+            <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+            <XAxis dataKey="id" stroke={THEME.muted} />
+            <YAxis stroke={THEME.muted} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: THEME.card,
+                border: `1px solid ${THEME.accent3}`,
+                color: THEME.text,
+              }}
+            />
+            <Line type="monotone" dataKey="value" stroke={THEME.accent3} strokeWidth={3} />
           </LineChart>
         </ResponsiveContainer>
       </div>
