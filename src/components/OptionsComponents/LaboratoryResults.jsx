@@ -48,6 +48,7 @@ const LaboratoryResults = () => {
   const [gender, setGender] = useState('all')
   const [diabetes, setDiabetes] = useState('all')
   const [comorbidity, setComorbidity] = useState('all')
+  const [gallstone, setGallstone] = useState('all') // NEW FILTER
 
   const { data } = useContext(DataContext)
 
@@ -62,15 +63,20 @@ const LaboratoryResults = () => {
       const diabetesValue = Number(item['Diabetes Mellitus (DM)'] || 0)
       const comorbValue = Number(item['Comorbidity'] || 0)
 
+      let gsValue = item['Gallstone Status']
+      if (gsValue === '1' || gsValue?.toLowerCase() === 'yes') gsValue = '1'
+      if (gsValue === '0' || gsValue?.toLowerCase() === 'no') gsValue = '0'
+
       return (
         age >= minAge &&
         age <= maxAge &&
         (gender === 'all' || genderValue === gender) &&
         (diabetes === 'all' || diabetesValue === Number(diabetes)) &&
-        (comorbidity === 'all' || comorbValue === Number(comorbidity))
+        (comorbidity === 'all' || comorbValue === Number(comorbidity)) &&
+        (gallstone === 'all' || gsValue === gallstone)
       )
     })
-  }, [data, minAge, maxAge, gender, diabetes, comorbidity])
+  }, [data, minAge, maxAge, gender, diabetes, comorbidity, gallstone])
 
   const makeChartData = (key) =>
     filteredData.map((item, index) => ({
@@ -153,6 +159,24 @@ const LaboratoryResults = () => {
             <option value="1">Yes</option>
           </select>
         </div>
+
+        <div>
+          <label>Gallstone:</label>
+          <select
+            value={gallstone}
+            onChange={(e) => setGallstone(e.target.value)}
+            style={filterInputStyle}
+          >
+            <option value="all">All</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+      </div>
+
+      {/* PATIENT COUNT */}
+      <div style={{ margin: '15px 0', fontWeight: 600, color: THEME.text }}>
+        Total Patients: {filteredData.length}
       </div>
 
       {/* CHARTS */}

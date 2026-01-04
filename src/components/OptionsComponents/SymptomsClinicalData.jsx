@@ -34,15 +34,25 @@ const PIE_COLORS = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 const SymptomsClinicalData = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
+  const [gallstone, setGallstone] = useState('All') // All / Yes / No
 
   const { data } = useContext(DataContext)
 
   /* ================= FILTER DATA ================= */
   const filtered = useMemo(() => {
-    return data.filter((item) => item.Age >= minAge && item.Age <= maxAge)
-  }, [data, minAge, maxAge])
+    return data.filter((item) => {
+      const age = Number(item.Age) // Convert string to number
+      const ageMatch = age >= minAge && age <= maxAge
 
-  /* ================= PIE DATA (FIXED) ================= */
+      let gallstoneMatch = true
+      if (gallstone === 'Yes') gallstoneMatch = item['Gallstone Status'] === '1'
+      if (gallstone === 'No') gallstoneMatch = item['Gallstone Status'] === '0'
+
+      return ageMatch && gallstoneMatch
+    })
+  }, [data, minAge, maxAge, gallstone])
+
+  /* ================= PIE DATA ================= */
   const symptomsData = useMemo(() => {
     const counts = {
       Comorbidity: 0,
@@ -52,13 +62,12 @@ const SymptomsClinicalData = () => {
     }
 
     filtered.forEach((item) => {
-      if (item.Comorbidity) counts.Comorbidity++
-      if (item['Diabetes Mellitus (DM)']) counts.Diabetes++
-      if (item['Coronary Artery Disease (CAD)']) counts.CAD++
-      if (item.Hyperlipidemia) counts.Hyperlipidemia++
+      if (Number(item.Comorbidity) === 1) counts.Comorbidity++
+      if (Number(item['Diabetes Mellitus (DM)']) === 1) counts.Diabetes++
+      if (Number(item['Coronary Artery Disease (CAD)']) === 1) counts.CAD++
+      if (Number(item.Hyperlipidemia) === 1) counts.Hyperlipidemia++
     })
 
-    // 🔴 IMPORTANT: remove zero-value slices
     return Object.keys(counts)
       .map((key) => ({ name: key, value: counts[key] }))
       .filter((item) => item.value > 0)
@@ -68,9 +77,9 @@ const SymptomsClinicalData = () => {
   const clinicalData = useMemo(() => {
     return filtered.map((item, idx) => ({
       name: `P${idx + 1}`,
-      BMI: item['Body Mass Index (BMI)'],
-      TBW: item['Total Body Water (TBW)'],
-      VFR: item['Visceral Fat Rating (VFR)'],
+      BMI: Number(item['Body Mass Index (BMI)']),
+      TBW: Number(item['Total Body Water (TBW)']),
+      VFR: Number(item['Visceral Fat Rating (VFR)']),
     }))
   }, [filtered])
 
@@ -128,23 +137,31 @@ const SymptomsClinicalData = () => {
             style={inputStyle}
           />
         </div>
+
+        <div>
+          <label>Gallstone</label>
+          <br />
+          <select
+            value={gallstone}
+            onChange={(e) => setGallstone(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="All">All</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
       </div>
 
       {/* ================= CHARTS ================= */}
       <div style={{ display: 'flex', gap: 25, flexWrap: 'wrap' }}>
-        {/* ===== PIE CHART (FIXED) ===== */}
+        {/* ===== PIE CHART ===== */}
         <div style={{ ...cardStyle, flex: 1, minWidth: 350 }}>
           <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Symptoms Prevalence</h3>
 
           {symptomsData.length === 0 ? (
-            <p
-              style={{
-                textAlign: 'center',
-                marginTop: 40,
-                color: THEME.muted,
-              }}
-            >
-              No symptom data available for selected age range
+            <p style={{ textAlign: 'center', marginTop: 40, color: THEME.muted }}>
+              No symptom data available for selected filters
             </p>
           ) : (
             <ResponsiveContainer width="100%" height={320}>
@@ -167,7 +184,7 @@ const SymptomsClinicalData = () => {
                   contentStyle={{
                     backgroundColor: THEME.card,
                     border: `1px solid ${THEME.accent1}`,
-                    color: THEME.text,
+                    color: 'whitesmoke',
                   }}
                 />
 
@@ -216,7 +233,7 @@ const SymptomsClinicalData = () => {
         <p>Pie chart shows prevalence of major symptoms.</p>
         <p>Bar chart compares BMI, TBW, and VFR.</p>
         <p style={{ fontSize: 12, color: THEME.muted }}>
-          *Charts update dynamically based on age filters.
+          *Charts update dynamically based on filters.
         </p>
       </div>
     </div>

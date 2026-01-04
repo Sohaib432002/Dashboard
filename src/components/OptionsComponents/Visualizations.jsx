@@ -45,6 +45,7 @@ const Visualizations = () => {
   const [minAge, setMinAge] = useState(20)
   const [maxAge, setMaxAge] = useState(80)
   const [gender, setGender] = useState('all')
+  const [gallstone, setGallstone] = useState('all') // NEW FILTER
 
   const { data } = useContext(DataContext)
 
@@ -53,12 +54,23 @@ const Visualizations = () => {
     () =>
       data.filter((item) => {
         const age = Number(item['Age'] || 0)
+
         let g = item['Gender']
         if (g === '0' || g?.toLowerCase() === 'male') g = '0'
         if (g === '1' || g?.toLowerCase() === 'female') g = '1'
-        return age >= minAge && age <= maxAge && (gender === 'all' || g === gender)
+
+        let gs = item['Gallstone Status'] // new
+        if (gs === '1' || gs?.toLowerCase() === 'yes') gs = '1'
+        if (gs === '0' || gs?.toLowerCase() === 'no') gs = '0'
+
+        return (
+          age >= minAge &&
+          age <= maxAge &&
+          (gender === 'all' || g === gender) &&
+          (gallstone === 'all' || gs === gallstone)
+        )
       }),
-    [data, minAge, maxAge, gender]
+    [data, minAge, maxAge, gender, gallstone]
   )
 
   // ================= CHART DATA =================
@@ -167,6 +179,31 @@ const Visualizations = () => {
               <option value="1">Female</option>
             </select>
           </div>
+
+          <div>
+            <label>Gallstone</label>
+            <select
+              value={gallstone}
+              onChange={(e) => setGallstone(e.target.value)}
+              style={{
+                marginLeft: 10,
+                padding: 8,
+                borderRadius: 8,
+                border: `1px solid ${THEME.muted}`,
+                background: THEME.bg,
+                color: THEME.text,
+              }}
+            >
+              <option value="all">All</option>
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+        </div>
+
+        {/* ================= PATIENT COUNT LABEL ================= */}
+        <div style={{ marginTop: 15, fontWeight: 600, color: THEME.text }}>
+          Total Patients: {filteredData.length}
         </div>
       </div>
 

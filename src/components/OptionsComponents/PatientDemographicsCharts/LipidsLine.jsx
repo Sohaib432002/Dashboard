@@ -8,38 +8,98 @@ const THEME = {
   card: '#1e293b', // card background
   text: '#e5e7eb', // main text
   muted: '#94a3b8', // axis / border
-  lineColors: ['#38bdf8', '#00a3e0', '#0056b3', '#000046'], // TC, LDL, HDL, Triglyceride
+  lineColors: ['#38bdf8', '#00a3e0', '#0056b3', '#f97316'], // TC, LDL, HDL, Triglyceride
+}
+
+// ================= FILTER OPTIONS =================
+const AGE_OPTIONS = ['All', '0-20', '21-40', '41-60', '61-80', '81-100']
+const GENDER_OPTIONS = ['All', 'Male', 'Female']
+const COMORBIDITY_OPTIONS = ['All', 'Yes', 'No']
+const GALLSTONE_OPTIONS = ['All', 'Yes', 'No']
+const LIPID_OPTIONS = ['All', 'Normal', 'Over', 'High']
+
+// ================= LIPID RANGES =================
+const LIPID_RANGES = {
+  TC: { Normal: [0, 200], Over: [201, 239], High: [240, 400] },
+  LDL: { Normal: [0, 129], Over: [130, 159], High: [160, 300] },
+  HDL: { Normal: [40, 60], Over: [61, 100], High: [101, 150] },
+  Triglyceride: { Normal: [0, 149], Over: [150, 199], High: [200, 300] },
 }
 
 export default function LipidsLine({ data }) {
+  // ================= FILTER STATES =================
   const [ageRange, setAgeRange] = useState('All')
   const [gender, setGender] = useState('All')
-
-  const AGE_OPTIONS = ['All', '0-20', '21-40', '41-60', '61-80', '81-100']
-  const GENDER_OPTIONS = ['All', 'Male', 'Female']
+  const [comorbidity, setComorbidity] = useState('All')
+  const [gallstone, setGallstone] = useState('All')
+  const [tcStatus, setTcStatus] = useState('All')
+  const [ldlStatus, setLdlStatus] = useState('All')
+  const [hdlStatus, setHdlStatus] = useState('All')
+  const [triStatus, setTriStatus] = useState('All')
 
   // ================= FILTER DATA =================
   const filteredData = useMemo(() => {
-    return data.filter((row) => {
-      let ageOk = true
-      let genderOk = true
+    return data
+      .map((row) => ({
+        ...row,
+        TC: Number(row['Total Cholesterol (TC)'] || 0),
+        LDL: Number(row['Low Density Lipoprotein (LDL)'] || 0),
+        HDL: Number(row['High Density Lipoprotein (HDL)'] || 0),
+        Triglyceride: Number(row['Triglyceride'] || 0),
+        GallstoneStatus: Number(row['Gallstone Status'] || 0), // 1 = Yes, 0 = No
+        Comorbidity: Number(row.Comorbidity || 0), // 1 = Yes, 0 = No
+        Gender: Number(row.Gender || 0), // 0 = Male, 1 = Female
+      }))
+      .filter((row) => {
+        let ageOk = true
+        let genderOk = true
+        let comorbOk = true
+        let gallstoneOk = true
+        let tcOk = true
+        let ldlOk = true
+        let hdlOk = true
+        let triOk = true
 
-      if (ageRange !== 'All') {
-        const [min, max] = ageRange.split('-').map(Number)
-        ageOk = Number(row.Age) >= min && Number(row.Age) <= max
-      }
+        // Age filter
+        if (ageRange !== 'All') {
+          const [min, max] = ageRange.split('-').map(Number)
+          ageOk = Number(row.Age) >= min && Number(row.Age) <= max
+        }
 
-      if (gender !== 'All') {
-        genderOk = gender === 'Male' ? Number(row.Gender) === 0 : Number(row.Gender) === 1
-      }
+        // Gender filter
+        if (gender !== 'All') {
+          genderOk = gender === 'Male' ? row.Gender === 0 : row.Gender === 1
+        }
 
-      return ageOk && genderOk
-    })
-  }, [data, ageRange, gender])
+        // Comorbidity filter
+        if (comorbidity !== 'All') {
+          comorbOk = comorbidity === 'Yes' ? row.Comorbidity === 1 : row.Comorbidity === 0
+        }
+
+        // Gallstone filter
+        if (gallstone !== 'All') {
+          gallstoneOk = gallstone === 'Yes' ? row.GallstoneStatus === 1 : row.GallstoneStatus === 0
+        }
+
+        // Lipid filters
+        const checkLipid = (value, status, type) => {
+          if (status === 'All') return true
+          const [min, max] = LIPID_RANGES[type][status]
+          return value >= min && value <= max
+        }
+
+        tcOk = checkLipid(row.TC, tcStatus, 'TC')
+        ldlOk = checkLipid(row.LDL, ldlStatus, 'LDL')
+        hdlOk = checkLipid(row.HDL, hdlStatus, 'HDL')
+        triOk = checkLipid(row.Triglyceride, triStatus, 'Triglyceride')
+
+        return ageOk && genderOk && comorbOk && gallstoneOk && tcOk && ldlOk && hdlOk && triOk
+      })
+  }, [data, ageRange, gender, comorbidity, gallstone, tcStatus, ldlStatus, hdlStatus, triStatus])
 
   const chartData = filteredData.map((row, index) => ({
     index: index + 1,
-    TC: row['Total Cholesterol (TC)'],
+    TC: row.TC,
     LDL: row.LDL,
     HDL: row.HDL,
     Triglyceride: row.Triglyceride,
@@ -76,21 +136,27 @@ export default function LipidsLine({ data }) {
 
   const titleStyle = {
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 5,
     fontWeight: 600,
     color: THEME.text,
     fontSize: 16,
   }
 
+  // ================= PATIENT COUNT =================
+  const patientCount = filteredData.length
+
   return (
     <div style={cardStyle}>
-      {/* ================= HEADER ================= */}
+      {/* Title */}
       <div style={titleStyle}>Lipid Profile Trends</div>
+      <div style={{ textAlign: 'center', marginBottom: 15, color: THEME.text }}>
+        Showing <strong>{patientCount}</strong> patients
+      </div>
 
-      {/* ================= FILTERS ================= */}
+      {/* Filters */}
       <div style={filterContainerStyle}>
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Age Range</label>
+          <label>Age Range</label>
           <select value={ageRange} onChange={(e) => setAgeRange(e.target.value)} style={inputStyle}>
             {AGE_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
@@ -101,7 +167,7 @@ export default function LipidsLine({ data }) {
         </div>
 
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Gender</label>
+          <label>Gender</label>
           <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
             {GENDER_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
@@ -110,9 +176,96 @@ export default function LipidsLine({ data }) {
             ))}
           </select>
         </div>
+
+        <div style={filterItemStyle}>
+          <label>Comorbidity</label>
+          <select
+            value={comorbidity}
+            onChange={(e) => setComorbidity(e.target.value)}
+            style={inputStyle}
+          >
+            {COMORBIDITY_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterItemStyle}>
+          <label>Gallstone Status</label>
+          <select
+            value={gallstone}
+            onChange={(e) => setGallstone(e.target.value)}
+            style={inputStyle}
+          >
+            {GALLSTONE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Lipid Dropdown Filters */}
+        <div style={filterItemStyle}>
+          <label>TC</label>
+          <select value={tcStatus} onChange={(e) => setTcStatus(e.target.value)} style={inputStyle}>
+            {LIPID_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterItemStyle}>
+          <label>LDL</label>
+          <select
+            value={ldlStatus}
+            onChange={(e) => setLdlStatus(e.target.value)}
+            style={inputStyle}
+          >
+            {LIPID_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterItemStyle}>
+          <label>HDL</label>
+          <select
+            value={hdlStatus}
+            onChange={(e) => setHdlStatus(e.target.value)}
+            style={inputStyle}
+          >
+            {LIPID_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={filterItemStyle}>
+          <label>Triglyceride</label>
+          <select
+            value={triStatus}
+            onChange={(e) => setTriStatus(e.target.value)}
+            style={inputStyle}
+          >
+            {LIPID_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* ================= LINE CHART ================= */}
+      {/* Line Chart */}
       <div style={{ width: '100%', height: 360 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
