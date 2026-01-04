@@ -15,19 +15,41 @@ import {
 import Loader from '../LoadingSpinner'
 import { DataContext } from '../useContext'
 
-// BLUE THEME COLORS
-const colors = {
-  dark: '#000046',
-  medium: '#0b3d91',
-  light: '#1cb5e0',
-  veryLight: '#e0f7ff',
-  danger: '#ff595e',
+// ================= SAME THEME =================
+const THEME = {
+  bg: '#0f172a',
+  card: '#020617',
+  grid: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent1: '#38bdf8',
+  accent2: '#22c55e',
+  accent3: '#f97316',
+  accent4: '#a855f7',
+}
+
+// ================= STYLES =================
+const cardStyle = {
+  background: THEME.card,
+  borderRadius: 16,
+  padding: 25,
+  color: THEME.text,
+  boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
+  marginBottom: 30,
+}
+
+const inputStyle = {
+  padding: '8px 12px',
+  borderRadius: 8,
+  marginRight: 15,
+  background: THEME.bg,
+  color: THEME.text,
+  border: `1px solid ${THEME.accent1}`,
 }
 
 const TreatmentData = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
-
   const { data } = useContext(DataContext)
 
   const filtered = useMemo(
@@ -35,12 +57,12 @@ const TreatmentData = () => {
     [data, minAge, maxAge]
   )
 
+  // Pie Data: Gallstone Status
   const pieData = useMemo(() => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
       const status = Number(item['Gallstone Status'] || 0)
-      if (status === 1) counts.Yes++
-      else counts.No++
+      status === 1 ? counts.Yes++ : counts.No++
     })
     return [
       { name: 'Yes', value: counts.Yes },
@@ -48,6 +70,7 @@ const TreatmentData = () => {
     ]
   }, [filtered])
 
+  // Bar Data: BMI & TBW
   const clinicalData = useMemo(
     () =>
       filtered.map((item, idx) => ({
@@ -58,6 +81,7 @@ const TreatmentData = () => {
     [filtered]
   )
 
+  // Pie Data: Fat Distribution
   const fatData = useMemo(() => {
     const counts = { Visceral: 0, Total: 0 }
     filtered.forEach((item) => {
@@ -72,43 +96,18 @@ const TreatmentData = () => {
 
   if (data.length === 0) return <Loader />
 
-  const cardStyle = {
-    background: colors.medium,
-    borderRadius: 16,
-    padding: 20,
-    color: colors.veryLight,
-    boxShadow: `0 6px 20px ${colors.light}55`,
-  }
-
-  const inputStyle = {
-    padding: '8px 12px',
-    borderRadius: 8,
-    marginRight: 15,
-    background: colors.dark,
-    color: colors.veryLight,
-    border: `1px solid ${colors.light}`,
-  }
-
   return (
     <div
       style={{
         padding: 25,
-        background: `linear-gradient(to bottom, ${colors.dark}, ${colors.light})`,
+        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
         minHeight: '100vh',
       }}
     >
-      <h2 style={{ color: colors.veryLight, fontSize: 28, marginBottom: 20 }}>Treatment Data</h2>
+      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>Treatment Data</h2>
 
-      {/* Filters */}
-      <div
-        style={{
-          ...cardStyle,
-          display: 'flex',
-          gap: 20,
-          flexWrap: 'wrap',
-          marginBottom: 30,
-        }}
-      >
+      {/* ================= FILTERS ================= */}
+      <div style={{ ...cardStyle, display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 30 }}>
         <div>
           <label>Min Age:</label>
           <input
@@ -129,11 +128,11 @@ const TreatmentData = () => {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* ================= CHARTS ================= */}
       <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* Gallstone Pie */}
+        {/* Gallstone Status Pie */}
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Gallstone Status</h3>
+          <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Gallstone Status</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -146,33 +145,62 @@ const TreatmentData = () => {
                 label
               >
                 {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={[colors.light, colors.veryLight][index]} />
+                  <Cell
+                    key={index}
+                    fill={[THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4][index % 4]}
+                  />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: colors.dark, color: colors.veryLight }} />
-              <Legend verticalAlign="bottom" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent1}`,
+                  color: THEME.text,
+                }}
+              />
+              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         {/* BMI & TBW Bar */}
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>BMI & TBW</h3>
+          <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>BMI & TBW</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={clinicalData}>
-              <XAxis dataKey="name" stroke={colors.veryLight} />
-              <YAxis stroke={colors.veryLight} />
-              <Tooltip contentStyle={{ backgroundColor: colors.dark, color: colors.veryLight }} />
-              <Legend wrapperStyle={{ color: colors.veryLight }} />
-              <Bar dataKey="BMI" fill={colors.light} radius={[5, 5, 0, 0]} />
-              <Bar dataKey="TBW" fill={colors.veryLight} radius={[5, 5, 0, 0]} />
+              <XAxis dataKey="name" stroke={THEME.muted} />
+              <YAxis stroke={THEME.muted} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent2}`,
+                  color: THEME.text,
+                }}
+              />
+              <Legend wrapperStyle={{ color: THEME.text }} />
+              <Bar dataKey="BMI" radius={[5, 5, 0, 0]}>
+                {clinicalData.map((_, index) => (
+                  <Cell
+                    key={index}
+                    fill={[THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4][index % 4]}
+                  />
+                ))}
+              </Bar>
+              <Bar dataKey="TBW" radius={[5, 5, 0, 0]}>
+                {clinicalData.map((_, index) => (
+                  <Cell
+                    key={index}
+                    fill={[THEME.accent2, THEME.accent3, THEME.accent4, THEME.accent1][index % 4]}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Fat Distribution Pie */}
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Fat Distribution</h3>
+          <h3 style={{ textAlign: 'center', color: THEME.accent3 }}>Fat Distribution</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
@@ -185,34 +213,43 @@ const TreatmentData = () => {
                 label
               >
                 {fatData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={[colors.light, colors.veryLight][index]} />
+                  <Cell
+                    key={index}
+                    fill={[THEME.accent3, THEME.accent4, THEME.accent1, THEME.accent2][index % 4]}
+                  />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: colors.dark, color: colors.veryLight }} />
-              <Legend verticalAlign="bottom" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent3}`,
+                  color: THEME.text,
+                }}
+              />
+              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Insights */}
+      {/* ================= INSIGHTS ================= */}
       <div className="flex flex-col md:flex-row gap-5">
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: colors.light, marginBottom: 10 }}>Gallstone Status Analysis</h4>
-          <p style={{ color: colors.veryLight }}>
+          <h4 style={{ color: THEME.accent1, marginBottom: 10 }}>Gallstone Status Analysis</h4>
+          <p style={{ color: THEME.text }}>
             Shows how many patients have gallstones vs no gallstones in the selected age range.
           </p>
         </div>
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: colors.light, marginBottom: 10 }}>BMI & TBW Insights</h4>
-          <p style={{ color: colors.veryLight }}>
+          <h4 style={{ color: THEME.accent2, marginBottom: 10 }}>BMI & TBW Insights</h4>
+          <p style={{ color: THEME.text }}>
             Compare BMI and Total Body Water for each patient. Helps assess hydration and body
             composition.
           </p>
         </div>
         <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: colors.light, marginBottom: 10 }}>Fat Distribution Insights</h4>
-          <p style={{ color: colors.veryLight }}>
+          <h4 style={{ color: THEME.accent3, marginBottom: 10 }}>Fat Distribution Insights</h4>
+          <p style={{ color: THEME.text }}>
             Shows distribution of visceral fat and total fat among patients. Helps understand
             obesity and risk factors.
           </p>

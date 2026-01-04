@@ -1,4 +1,3 @@
-// SymptomsClinicalData.jsx
 import { useContext, useMemo, useState } from 'react'
 import {
   Bar,
@@ -11,20 +10,26 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  CartesianGrid,
 } from 'recharts'
 import Loader from '../LoadingSpinner'
 import { DataContext } from '../useContext'
 
-// Blue theme colors
-const colors = {
-  dark: '#000046', // background
-  medium: '#0b3d91', // card background
-  light: '#1cb5e0', // highlights / labels
-  veryLight: '#e0f7ff', // text
-  danger: '#ff595e', // warnings / high risk
+/* ================= THEME ================= */
+const THEME = {
+  bg: '#0f172a',
+  card: '#020617',
+  grid: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent1: '#38bdf8', // Blue
+  accent2: '#22c55e', // Green
+  accent3: '#f97316', // Orange
+  accent4: '#a855f7', // Purple
 }
 
-const COLORS = [colors.light, colors.medium, colors.veryLight, '#48a9e6']
+/* Pie colors */
+const PIE_COLORS = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 
 const SymptomsClinicalData = () => {
   const [minAge, setMinAge] = useState(0)
@@ -32,76 +37,79 @@ const SymptomsClinicalData = () => {
 
   const { data } = useContext(DataContext)
 
-  const filtered = useMemo(
-    () => data.filter((item) => item.Age >= minAge && item.Age <= maxAge),
-    [data, minAge, maxAge]
-  )
+  /* ================= FILTER DATA ================= */
+  const filtered = useMemo(() => {
+    return data.filter((item) => item.Age >= minAge && item.Age <= maxAge)
+  }, [data, minAge, maxAge])
 
+  /* ================= PIE DATA (FIXED) ================= */
   const symptomsData = useMemo(() => {
-    const counts = { Comorbidity: 0, DM: 0, CAD: 0, Hyperlipidemia: 0 }
+    const counts = {
+      Comorbidity: 0,
+      Diabetes: 0,
+      CAD: 0,
+      Hyperlipidemia: 0,
+    }
+
     filtered.forEach((item) => {
       if (item.Comorbidity) counts.Comorbidity++
-      if (item['Diabetes Mellitus (DM)']) counts.DM++
+      if (item['Diabetes Mellitus (DM)']) counts.Diabetes++
       if (item['Coronary Artery Disease (CAD)']) counts.CAD++
       if (item.Hyperlipidemia) counts.Hyperlipidemia++
     })
-    return Object.keys(counts).map((key) => ({ name: key, value: counts[key] }))
+
+    // 🔴 IMPORTANT: remove zero-value slices
+    return Object.keys(counts)
+      .map((key) => ({ name: key, value: counts[key] }))
+      .filter((item) => item.value > 0)
   }, [filtered])
 
-  const clinicalData = useMemo(
-    () =>
-      filtered.map((item, idx) => ({
-        name: `P${idx + 1}`,
-        BMI: item['Body Mass Index (BMI)'],
-        TBW: item['Total Body Water (TBW)'],
-        VFR: item['Visceral Fat Rating (VFR)'],
-      })),
-    [filtered]
-  )
+  /* ================= BAR DATA ================= */
+  const clinicalData = useMemo(() => {
+    return filtered.map((item, idx) => ({
+      name: `P${idx + 1}`,
+      BMI: item['Body Mass Index (BMI)'],
+      TBW: item['Total Body Water (TBW)'],
+      VFR: item['Visceral Fat Rating (VFR)'],
+    }))
+  }, [filtered])
 
   if (data.length === 0) return <Loader />
 
+  /* ================= STYLES ================= */
   const cardStyle = {
-    background: colors.medium,
-    borderRadius: 16,
-    padding: 20,
-    color: colors.veryLight,
-    boxShadow: `0 6px 20px ${colors.light}55`,
+    background: THEME.card,
+    borderRadius: 18,
+    padding: 22,
+    color: THEME.text,
+    boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
   }
 
   const inputStyle = {
     padding: '8px 12px',
     borderRadius: 8,
-    marginRight: 15,
-    background: colors.dark,
-    color: colors.veryLight,
-    border: `1px solid ${colors.light}`,
+    background: THEME.bg,
+    color: THEME.text,
+    border: `1px solid ${THEME.accent1}`,
   }
 
   return (
     <div
       style={{
-        padding: 25,
-        background: `linear-gradient(to bottom, ${colors.dark}, ${colors.light})`,
         minHeight: '100vh',
+        padding: 30,
+        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
       }}
     >
-      <h2 style={{ color: colors.veryLight, fontSize: 28, marginBottom: 20 }}>
+      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 25 }}>
         Symptoms & Clinical Data
       </h2>
 
-      {/* Filters */}
-      <div
-        style={{
-          ...cardStyle,
-          display: 'flex',
-          gap: 20,
-          flexWrap: 'wrap',
-          marginBottom: 30,
-        }}
-      >
+      {/* ================= FILTERS ================= */}
+      <div style={{ ...cardStyle, display: 'flex', gap: 20, marginBottom: 30 }}>
         <div>
-          <label>Min Age:</label>
+          <label>Min Age</label>
+          <br />
           <input
             type="number"
             value={minAge}
@@ -109,8 +117,10 @@ const SymptomsClinicalData = () => {
             style={inputStyle}
           />
         </div>
+
         <div>
-          <label>Max Age:</label>
+          <label>Max Age</label>
+          <br />
           <input
             type="number"
             value={maxAge}
@@ -120,68 +130,93 @@ const SymptomsClinicalData = () => {
         </div>
       </div>
 
-      {/* Charts */}
-      <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* Symptoms Pie */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Symptoms Prevalence</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={symptomsData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {symptomsData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: colors.dark, color: colors.veryLight }} />
-              <Legend verticalAlign="bottom" />
-            </PieChart>
-          </ResponsiveContainer>
+      {/* ================= CHARTS ================= */}
+      <div style={{ display: 'flex', gap: 25, flexWrap: 'wrap' }}>
+        {/* ===== PIE CHART (FIXED) ===== */}
+        <div style={{ ...cardStyle, flex: 1, minWidth: 350 }}>
+          <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Symptoms Prevalence</h3>
+
+          {symptomsData.length === 0 ? (
+            <p
+              style={{
+                textAlign: 'center',
+                marginTop: 40,
+                color: THEME.muted,
+              }}
+            >
+              No symptom data available for selected age range
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={320}>
+              <PieChart>
+                <Pie
+                  data={symptomsData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={45}
+                  outerRadius={115}
+                  paddingAngle={4}
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {symptomsData.map((_, index) => (
+                    <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: THEME.card,
+                    border: `1px solid ${THEME.accent1}`,
+                    color: THEME.text,
+                  }}
+                />
+
+                <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
-        {/* Clinical Measures Bar */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: colors.light }}>Clinical Measures</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        {/* ===== BAR CHART ===== */}
+        <div style={{ ...cardStyle, flex: 1, minWidth: 350 }}>
+          <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>Clinical Measures</h3>
+
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart data={clinicalData}>
-              <XAxis dataKey="name" stroke={colors.veryLight} />
-              <YAxis stroke={colors.veryLight} />
-              <Tooltip contentStyle={{ backgroundColor: colors.dark, color: colors.veryLight }} />
-              <Legend wrapperStyle={{ color: colors.veryLight }} />
-              <Bar dataKey="BMI" fill={colors.light} radius={[5, 5, 0, 0]} />
-              <Bar dataKey="TBW" fill={colors.veryLight} radius={[5, 5, 0, 0]} />
-              <Bar dataKey="VFR" fill={colors.medium} radius={[5, 5, 0, 0]} />
+              <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+
+              <XAxis dataKey="name" stroke={THEME.muted} tick={{ fontSize: 12 }} />
+
+              <YAxis stroke={THEME.muted} tick={{ fontSize: 12 }} />
+
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${THEME.accent3}`,
+                  color: THEME.text,
+                }}
+              />
+
+              <Legend wrapperStyle={{ color: THEME.text }} />
+
+              <Bar dataKey="BMI" fill={THEME.accent1} radius={[8, 8, 0, 0]} />
+              <Bar dataKey="TBW" fill={THEME.accent2} radius={[8, 8, 0, 0]} />
+              <Bar dataKey="VFR" fill={THEME.accent3} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Analysis */}
-      <div style={{ ...cardStyle }}>
-        <h3 style={{ color: colors.light, marginBottom: 10 }}>Analysis & Summary</h3>
-        <p style={{ color: colors.veryLight, marginBottom: 5 }}>
-          Total patients in selected age range: <strong>{filtered.length}</strong>
+      {/* ================= SUMMARY ================= */}
+      <div style={{ ...cardStyle, marginTop: 30 }}>
+        <h3 style={{ color: THEME.accent3 }}>Analysis & Summary</h3>
+        <p>
+          Total patients selected: <b>{filtered.length}</b>
         </p>
-        <p style={{ color: colors.veryLight, marginBottom: 5 }}>
-          Most common symptoms among patients are shown in the pie chart above.
-        </p>
-        <p style={{ color: colors.veryLight, marginBottom: 5 }}>
-          Bar chart shows BMI, Total Body Water (TBW), and Visceral Fat Rating (VFR) for each
-          patient.
-        </p>
-        <p style={{ color: colors.veryLight, marginBottom: 5 }}>
-          Charts and data update dynamically based on the age filters.
-        </p>
-        <p style={{ color: colors.veryLight, fontSize: 12, marginTop: 10 }}>
-          *Note: Symptom and clinical measure prevalence may indicate risk factors and overall
-          patient health trends.
+        <p>Pie chart shows prevalence of major symptoms.</p>
+        <p>Bar chart compares BMI, TBW, and VFR.</p>
+        <p style={{ fontSize: 12, color: THEME.muted }}>
+          *Charts update dynamically based on age filters.
         </p>
       </div>
     </div>

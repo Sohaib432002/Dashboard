@@ -1,20 +1,20 @@
 import { useContext, useMemo, useState } from 'react'
 import { DataContext } from '../useContext'
 
-// Blue theme colors
+// Professional Dashboard Theme (Graph Friendly)
 const colors = {
-  dark: '#000046', // main background
-  medium: '#0b3d91', // card background
-  light: '#1cb5e0', // highlights / borders
-  veryLight: '#e0f7ff', // text
-  danger: '#ff595e', // high risk
+  dark: '#0a1128', // main background (deep navy)
+  medium: '#1c2541', // card background
+  light: '#3a86ff', // accent / borders / graph primary
+  veryLight: '#eaf4ff', // text
+  danger: '#ff4d6d', // high risk
 }
 
 const cardStyle = {
   background: colors.medium,
   padding: 25,
   borderRadius: 16,
-  boxShadow: `0 6px 20px ${colors.light}55`,
+  boxShadow: '0 8px 25px rgba(58,134,255,0.25)',
   color: colors.veryLight,
   minWidth: 200,
   textAlign: 'center',
@@ -28,7 +28,6 @@ const SummaryMetrics = () => {
 
   const { data } = useContext(DataContext)
 
-  // Filtered data based on age and gender
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const age = Number(item['Age'] || 0)
@@ -43,12 +42,10 @@ const SummaryMetrics = () => {
     })
   }, [data, minAge, maxAge, gender])
 
-  // Metrics calculation
   const metrics = useMemo(() => {
     if (filteredData.length === 0) return {}
 
     const totalPatients = filteredData.length
-
     const avg = (key) =>
       (filteredData.reduce((acc, i) => acc + Number(i[key] || 0), 0) / totalPatients).toFixed(2)
 
@@ -74,8 +71,8 @@ const SummaryMetrics = () => {
     <div
       style={{
         padding: 30,
-        background: `linear-gradient(to bottom, ${colors.dark}, ${colors.light})`,
         minHeight: '100vh',
+        background: `linear-gradient(180deg, ${colors.dark}, #14213d)`,
       }}
     >
       {/* HEADER */}
@@ -84,58 +81,40 @@ const SummaryMetrics = () => {
           padding: '25px 30px',
           background: colors.medium,
           borderRadius: 16,
-          boxShadow: `0 4px 20px ${colors.light}55`,
+          boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
           marginBottom: 25,
           border: `1px solid ${colors.light}33`,
         }}
       >
         <h1 style={{ fontSize: 32, color: colors.veryLight }}>Summary Metrics</h1>
-        <p style={{ opacity: 0.85 }}>
-          Get an overview of patient health indicators in the selected age and gender group.
+        <p style={{ opacity: 0.85, color: colors.veryLight }}>
+          Overview of patient health indicators
         </p>
       </div>
 
       {/* FILTERS */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 30,
-          flexWrap: 'wrap',
-          marginBottom: 30,
-        }}
-      >
-        <div>
-          <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Min Age</label>
-          <input
-            type="number"
-            value={minAge}
-            onChange={(e) => setMinAge(Number(e.target.value))}
-            style={{
-              marginLeft: 10,
-              padding: 8,
-              borderRadius: 8,
-              border: `1px solid ${colors.light}`,
-              background: colors.dark,
-              color: colors.veryLight,
-            }}
-          />
-        </div>
-        <div>
-          <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Max Age</label>
-          <input
-            type="number"
-            value={maxAge}
-            onChange={(e) => setMaxAge(Number(e.target.value))}
-            style={{
-              marginLeft: 10,
-              padding: 8,
-              borderRadius: 8,
-              border: `1px solid ${colors.light}`,
-              background: colors.dark,
-              color: colors.veryLight,
-            }}
-          />
-        </div>
+      <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', marginBottom: 30 }}>
+        {['Min Age', 'Max Age'].map((label, idx) => (
+          <div key={label}>
+            <label style={{ fontWeight: 'bold', color: colors.veryLight }}>{label}</label>
+            <input
+              type="number"
+              value={idx === 0 ? minAge : maxAge}
+              onChange={(e) =>
+                idx === 0 ? setMinAge(Number(e.target.value)) : setMaxAge(Number(e.target.value))
+              }
+              style={{
+                marginLeft: 10,
+                padding: 8,
+                borderRadius: 8,
+                border: `1px solid ${colors.light}`,
+                background: colors.dark,
+                color: colors.veryLight,
+              }}
+            />
+          </div>
+        ))}
+
         <div>
           <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Gender</label>
           <select
@@ -157,33 +136,29 @@ const SummaryMetrics = () => {
         </div>
       </div>
 
-      {/* METRICS CARDS */}
+      {/* METRICS */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-        <div style={cardStyle}>
-          <h2>Total Patients</h2>
-          <p style={{ fontSize: 28 }}>{metrics.totalPatients || 0}</p>
-        </div>
-        <div style={cardStyle}>
-          <h2>Average BMI</h2>
-          <p style={{ fontSize: 28 }}>{metrics.avgBMI || 0}</p>
-        </div>
-        <div style={cardStyle}>
-          <h2>Average Glucose</h2>
-          <p style={{ fontSize: 28 }}>{metrics.avgGlucose || 0}</p>
-        </div>
-        <div style={cardStyle}>
-          <h2>Average Cholesterol</h2>
-          <p style={{ fontSize: 28 }}>{metrics.avgCholesterol || 0}</p>
-        </div>
-        <div style={cardStyle}>
-          <h2>Average Fat %</h2>
-          <p style={{ fontSize: 28 }}>{metrics.avgFat || 0}</p>
-        </div>
-        <div style={cardStyle}>
-          <h2>Average Lean Mass %</h2>
-          <p style={{ fontSize: 28 }}>{metrics.avgLeanMass || 0}</p>
-        </div>
-        <div style={{ ...cardStyle, background: colors.dark, color: colors.danger }}>
+        {[
+          ['Total Patients', metrics.totalPatients],
+          ['Average BMI', metrics.avgBMI],
+          ['Average Glucose', metrics.avgGlucose],
+          ['Average Cholesterol', metrics.avgCholesterol],
+          ['Average Fat %', metrics.avgFat],
+          ['Average Lean Mass %', metrics.avgLeanMass],
+        ].map(([title, value]) => (
+          <div key={title} style={cardStyle}>
+            <h2>{title}</h2>
+            <p style={{ fontSize: 28 }}>{value || 0}</p>
+          </div>
+        ))}
+
+        <div
+          style={{
+            ...cardStyle,
+            background: '#0b132b',
+            color: colors.danger,
+          }}
+        >
           <h2>High Risk Patients</h2>
           <p style={{ fontSize: 28 }}>{metrics.highRiskCount || 0}</p>
         </div>

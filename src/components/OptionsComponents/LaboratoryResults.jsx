@@ -10,21 +10,26 @@ import {
 } from 'recharts'
 import { DataContext } from '../useContext'
 
-// BLUE GRADIENT THEME
-const colors = {
-  dark: '#000046', // gradient start
-  medium: '#0b3d91', // dark blue card background
-  soft: '#1cb5e0', // gradient end / line & grid highlight
-  light: '#6ad1f0', // lighter line highlight
-  veryLight: '#e0f7ff', // text color
+/* ================= SAME THEME ================= */
+const THEME = {
+  bg: '#0f172a',
+  card: '#020617',
+  grid: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  accent1: '#38bdf8',
+  accent2: '#22c55e',
+  accent3: '#f97316',
+  accent4: '#a855f7',
 }
 
+/* ===== STYLES (ONLY COLORS CHANGED) ===== */
 const cardStyle = {
-  background: colors.medium,
+  background: THEME.card,
   padding: 25,
   borderRadius: 16,
-  boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
-  color: colors.veryLight,
+  boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
+  color: THEME.text,
   marginBottom: 30,
 }
 
@@ -32,9 +37,9 @@ const filterInputStyle = {
   padding: '8px 12px',
   borderRadius: 8,
   marginRight: 15,
-  background: colors.dark,
-  color: colors.veryLight,
-  border: `1px solid ${colors.soft}`,
+  background: THEME.bg,
+  color: THEME.text,
+  border: `1px solid ${THEME.accent1}`,
 }
 
 const LaboratoryResults = () => {
@@ -82,13 +87,11 @@ const LaboratoryResults = () => {
     <div
       style={{
         padding: 25,
-        background: `linear-gradient(to bottom, ${colors.dark}, ${colors.soft})`,
+        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
         minHeight: '100vh',
       }}
     >
-      <h2 style={{ color: colors.veryLight, fontSize: 28, marginBottom: 20 }}>
-        Laboratory Results
-      </h2>
+      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>Laboratory Results</h2>
 
       {/* FILTERS */}
       <div style={{ ...cardStyle, display: 'flex', flexWrap: 'wrap', gap: 20 }}>
@@ -101,6 +104,7 @@ const LaboratoryResults = () => {
             style={filterInputStyle}
           />
         </div>
+
         <div>
           <label>Max Age:</label>
           <input
@@ -110,6 +114,7 @@ const LaboratoryResults = () => {
             style={filterInputStyle}
           />
         </div>
+
         <div>
           <label>Gender:</label>
           <select
@@ -122,6 +127,7 @@ const LaboratoryResults = () => {
             <option value="1">Female</option>
           </select>
         </div>
+
         <div>
           <label>Diabetes (DM):</label>
           <select
@@ -134,6 +140,7 @@ const LaboratoryResults = () => {
             <option value="1">Yes</option>
           </select>
         </div>
+
         <div>
           <label>Comorbidity:</label>
           <select
@@ -150,20 +157,26 @@ const LaboratoryResults = () => {
 
       {/* CHARTS */}
       {[
-        { title: 'Glucose Levels', data: glucoseData },
-        { title: 'Total Cholesterol (TC)', data: cholesterolData },
-        { title: 'LDL', data: ldlData },
-        { title: 'HDL', data: hdlData },
+        { title: 'Glucose Levels', data: glucoseData, color: THEME.accent1 },
+        { title: 'Total Cholesterol (TC)', data: cholesterolData, color: THEME.accent2 },
+        { title: 'LDL', data: ldlData, color: THEME.accent3 },
+        { title: 'HDL', data: hdlData, color: THEME.accent4 },
       ].map((chart, idx) => (
-        <div key={idx} style={{ ...cardStyle, background: colors.medium }}>
-          <h3 style={{ color: colors.light }}>{chart.title}</h3>
+        <div key={idx} style={cardStyle}>
+          <h3 style={{ color: chart.color }}>{chart.title}</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chart.data}>
-              <CartesianGrid stroke={colors.soft} strokeDasharray="3 3" />
-              <XAxis dataKey="id" stroke={colors.veryLight} />
-              <YAxis stroke={colors.veryLight} />
-              <Tooltip contentStyle={{ backgroundColor: colors.medium, color: colors.veryLight }} />
-              <Line type="monotone" dataKey="value" stroke={colors.soft} strokeWidth={3} />
+              <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+              <XAxis dataKey="id" stroke={THEME.muted} />
+              <YAxis stroke={THEME.muted} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: THEME.card,
+                  border: `1px solid ${chart.color}`,
+                  color: THEME.text,
+                }}
+              />
+              <Line type="monotone" dataKey="value" stroke={chart.color} strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>
