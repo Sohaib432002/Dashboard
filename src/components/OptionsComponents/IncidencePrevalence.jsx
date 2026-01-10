@@ -33,6 +33,8 @@ const BAR_COLORS = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 const IncidencePrevalence = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
+  const [gender, setGender] = useState('All') // new gender filter
+  const [gallstoneFilter, setGallstoneFilter] = useState('All') // new gallstone filter
   const { data } = useContext(DataContext)
 
   /* ================= FILTER DATA ================= */
@@ -40,9 +42,23 @@ const IncidencePrevalence = () => {
     () =>
       data.filter((item) => {
         const age = Number(item.Age || 0)
-        return age >= minAge && age <= maxAge
+        const genderVal = Number(item.Gender) // 0 = Male, 1 = Female
+        const gallstoneVal = Number(item['Gallstone Status'] || 0) // 1 = Yes, 0 = No
+        const ageOk = age >= minAge && age <= maxAge
+        const genderOk =
+          gender === 'All' ? true : gender === 'Male' ? genderVal === 0 : genderVal === 1
+        const gallstoneOk =
+          gallstoneFilter === 'All'
+            ? true
+            : gallstoneFilter === 'Yes'
+            ? gallstoneVal === 1
+            : gallstoneFilter === 'No'
+            ? gallstoneVal === 0
+            : true
+
+        return ageOk && genderOk && gallstoneOk
       }),
-    [data, minAge, maxAge]
+    [data, minAge, maxAge, gender, gallstoneFilter]
   )
 
   /* ================= PIE DATA ================= */
@@ -50,8 +66,11 @@ const IncidencePrevalence = () => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
       const status = Number(item['Gallstone Status'] || 0)
-      status === 1 ? counts.Yes++ : counts.No++
+      if (status === 1) counts.Yes++
+      else counts.No++
     })
+
+    // agar filtered me koi bhi patient nahi hai, phir bhi 0 show kar do
     return [
       { name: 'Yes', value: counts.Yes },
       { name: 'No', value: counts.No },
@@ -63,13 +82,12 @@ const IncidencePrevalence = () => {
     const bins = { '0-30': 0, '31-40': 0, '41-50': 0, '51-60': 0, '61+': 0 }
     filtered.forEach((item) => {
       const age = Number(item.Age || 0)
-      if (Number(item['Gallstone Status'] || 0) === 1) {
-        if (age <= 30) bins['0-30']++
-        else if (age <= 40) bins['31-40']++
-        else if (age <= 50) bins['41-50']++
-        else if (age <= 60) bins['51-60']++
-        else bins['61+']++
-      }
+      // simply count all filtered patients (Gallstone Yes or No)
+      if (age <= 30) bins['0-30']++
+      else if (age <= 40) bins['31-40']++
+      else if (age <= 50) bins['41-50']++
+      else if (age <= 60) bins['51-60']++
+      else bins['61+']++
     })
     return Object.keys(bins).map((key) => ({
       ageRange: key,
@@ -124,6 +142,7 @@ const IncidencePrevalence = () => {
           marginBottom: 30,
         }}
       >
+        {/* Min Age */}
         <div>
           <label>Min Age:</label>
           <input
@@ -134,6 +153,7 @@ const IncidencePrevalence = () => {
           />
         </div>
 
+        {/* Max Age */}
         <div>
           <label>Max Age:</label>
           <input
@@ -143,11 +163,35 @@ const IncidencePrevalence = () => {
             style={inputStyle}
           />
         </div>
+
+        {/* Gender */}
+        <div>
+          <label>Gender:</label>
+          <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
+            <option value="All">All</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        {/* Gallstone Status */}
+        <div>
+          <label>Gallstone Status:</label>
+          <select
+            value={gallstoneFilter}
+            onChange={(e) => setGallstoneFilter(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="All">All</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
       </div>
 
       {/* ================= CHARTS ================= */}
       <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* ===== PIE CHART ===== */}
+        {/* PIE CHART */}
         <div style={{ ...cardStyle, flex: 1 }}>
           <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Overall Prevalence</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -177,14 +221,13 @@ const IncidencePrevalence = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* ===== BAR CHART ===== */}
+        {/* BAR CHART */}
         <div style={{ ...cardStyle, flex: 1 }}>
           <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>Prevalence by Age Group</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData}>
               <XAxis dataKey="ageRange" stroke={THEME.muted} />
               <YAxis stroke={THEME.muted} />
-
               <Tooltip
                 contentStyle={{
                   backgroundColor: THEME.card,
@@ -193,7 +236,6 @@ const IncidencePrevalence = () => {
                 }}
               />
               <Legend wrapperStyle={{ color: THEME.text }} />
-
               <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                 {barData.map((_, index) => (
                   <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />

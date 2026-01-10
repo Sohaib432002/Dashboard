@@ -5,47 +5,57 @@ import { DataContext } from '../../useContext'
 
 // ================= THEME =================
 const THEME = {
-  bg: '#0f172a', // main background
-  card: '#1e293b', // card background
-  text: '#e5e7eb', // main text
-  muted: '#94a3b8', // axis / border muted
-  barColors: ['#38bdf8', '#22c55e'], // gradient or bar colors
+  bg: '#0f172a',
+  card: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  barColors: ['#38bdf8', '#22c55e'],
+}
+
+// ================= AGE RANGES =================
+const AGE_RANGES = {
+  All: [0, 200],
+  '0-20': [0, 20],
+  '21-40': [21, 40],
+  '41-60': [41, 60],
+  '61-80': [61, 80],
+  '81-100': [81, 100],
 }
 
 export default function ComorbidityBar() {
+  const { data } = useContext(DataContext)
+
   const [ageRange, setAgeRange] = useState('All')
   const [gender, setGender] = useState('All')
-  const { data } = useContext(DataContext)
+  const [gallstone, setGallstone] = useState('All') // new gallstone filter
 
   // ================= FILTER DATA =================
   const filteredData = useMemo(() => {
+    const [minAge, maxAge] = AGE_RANGES[ageRange]
+
     return data.filter((row) => {
-      let ageOk = true
-      let genderOk = true
+      const age = Number(row.Age)
+      const genderVal = Number(row.Gender)
+      const gallVal = Number(row['Gallstone Status']) // assuming column name is 'Gallstone'
+      console.log(gallVal, 'hai')
+      const ageOk = age >= minAge && age <= maxAge
+      const genderOk =
+        gender === 'All' ? true : gender === 'Male' ? genderVal === 0 : genderVal === 1
 
-      if (ageRange !== 'All') {
-        const [min, max] = ageRange.split('-').map(Number)
-        ageOk = Number(row.Age) >= min && Number(row.Age) <= max
-      }
+      const gallstoneOk =
+        gallstone === 'All' ? true : gallstone === 'Yes' ? gallVal === 1 : gallVal === 0
 
-      if (gender !== 'All') {
-        genderOk = gender === 'Male' ? Number(row.Gender) === 0 : Number(row.Gender) === 1
-      }
-
-      return ageOk && genderOk
+      return ageOk && genderOk && gallstoneOk
     })
-  }, [data, ageRange, gender])
+  }, [data, ageRange, gender, gallstone])
 
   // ================= CHART DATA =================
-  let noCount = 0
-  let yesCount = 0
-  filteredData.forEach((row) => {
-    if (Number(row.Comorbidity) === 0) noCount++
-    else yesCount++
-  })
   const chartData = [
-    { label: 'No', count: noCount },
-    { label: 'Yes', count: yesCount },
+    {
+      label: 'No Comorbidity',
+      count: filteredData.filter((r) => Number(r.Comorbidity) === 0).length,
+    },
+    { label: 'Comorbidity', count: filteredData.filter((r) => Number(r.Comorbidity) === 1).length },
   ]
 
   // ================= STYLES =================
@@ -74,39 +84,45 @@ export default function ComorbidityBar() {
     color: THEME.text,
     border: `1px solid ${THEME.muted}`,
     outline: 'none',
-    width: '100%',
-  }
-
-  const titleStyle = {
-    textAlign: 'center',
-    marginBottom: 15,
-    fontWeight: 600,
-    color: THEME.text,
-    fontSize: 16,
   }
 
   return (
     <div style={cardStyle}>
       {/* ================= FILTERS ================= */}
       <div style={filterContainerStyle}>
+        {/* Age */}
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Age Range</label>
+          <label>Age Range</label>
           <select value={ageRange} onChange={(e) => setAgeRange(e.target.value)} style={inputStyle}>
-            <option value="All">All</option>
-            <option value="0-20">0-20</option>
-            <option value="21-40">21-40</option>
-            <option value="41-60">41-60</option>
-            <option value="61-80">61-80</option>
-            <option value="81-100">81-100</option>
+            {Object.keys(AGE_RANGES).map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
           </select>
         </div>
 
+        {/* Gender */}
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Gender</label>
+          <label>Gender</label>
           <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
             <option value="All">All</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
+          </select>
+        </div>
+
+        {/* Gallstone */}
+        <div style={filterItemStyle}>
+          <label>Gallstone</label>
+          <select
+            value={gallstone}
+            onChange={(e) => setGallstone(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="All">All</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
           </select>
         </div>
       </div>
@@ -117,19 +133,11 @@ export default function ComorbidityBar() {
           <BarChart data={chartData}>
             <XAxis dataKey="label" stroke={THEME.text} />
             <YAxis stroke={THEME.text} />
-            <Tooltip
-              contentStyle={{
-                borderRadius: 10,
-                border: `1px solid ${THEME.barColors[0]}`,
-                backgroundColor: THEME.card,
-                color: THEME.text,
-                fontSize: '0.875rem',
-              }}
-            />
-            <Legend wrapperStyle={{ color: THEME.text, fontSize: '0.875rem' }} />
-            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {chartData.map((_, index) => (
-                <Cell key={index} fill={THEME.barColors[index % THEME.barColors.length]} />
+                <Cell key={index} fill={THEME.barColors[index]} />
               ))}
             </Bar>
           </BarChart>
