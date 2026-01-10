@@ -43,8 +43,7 @@ const titleStyle = {
 const PatientDemographics = () => {
   const [ageGroups, setAgeGroups] = useState({})
   const { data } = useContext(DataContext)
-
-  // Categorize age groups whenever data changes
+  
   useEffect(() => {
     if (data.length > 0) categorizeAges(data)
   }, [data])

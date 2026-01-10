@@ -1,4 +1,3 @@
-// RiskFactors.jsx
 import { useContext, useMemo, useState } from 'react'
 import {
   Bar,
@@ -50,6 +49,7 @@ const RiskFactors = () => {
   const [minAge, setMinAge] = useState(20)
   const [maxAge, setMaxAge] = useState(80)
   const [gender, setGender] = useState('all')
+  const [gallstone, setGallstone] = useState('all') // New state for Gallstone filter
 
   const { data } = useContext(DataContext)
 
@@ -58,13 +58,25 @@ const RiskFactors = () => {
     () =>
       data.filter((item) => {
         const age = Number(item['Age'] || 0)
+
         let genderValue = item['Gender']
         if (genderValue === '0' || genderValue?.toLowerCase() === 'male') genderValue = '0'
         if (genderValue === '1' || genderValue?.toLowerCase() === 'female') genderValue = '1'
 
-        return age >= minAge && age <= maxAge && (gender === 'all' || genderValue === gender)
+        let gallstoneValue = item['Gallstone'] || item['Gallstone Status'] || '0'
+        if (gallstoneValue === 'Yes') gallstoneValue = '1'
+        if (gallstoneValue === 'No') gallstoneValue = '0'
+
+        const ageOk = age >= minAge && age <= maxAge
+        const genderOk = gender === 'all' || genderValue === gender
+        const gallstoneOk =
+          gallstone === 'all' ||
+          (gallstone === 'yes' && gallstoneValue === '1') ||
+          (gallstone === 'no' && gallstoneValue === '0')
+
+        return ageOk && genderOk && gallstoneOk
       }),
-    [data, minAge, maxAge, gender]
+    [data, minAge, maxAge, gender, gallstone]
   )
 
   // ================= CHART DATA =================
@@ -129,6 +141,20 @@ const RiskFactors = () => {
               <option value="all">All</option>
               <option value="0">Male</option>
               <option value="1">Female</option>
+            </select>
+          </div>
+
+          {/* ================= GALLSTONE FILTER ================= */}
+          <div>
+            <label>Gallstone:</label>
+            <select
+              value={gallstone}
+              onChange={(e) => setGallstone(e.target.value)}
+              style={filterInputStyle}
+            >
+              <option value="all">All</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
             </select>
           </div>
         </div>

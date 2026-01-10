@@ -5,33 +5,52 @@ import { DataContext } from '../../useContext'
 
 // ================= THEME =================
 const THEME = {
-  bg: '#0f172a', // main background
-  card: '#1e293b', // card background
-  text: '#e5e7eb', // main text
-  muted: '#94a3b8', // axis / border muted
-  pieColors: ['#38bdf8', '#22c55e', '#f97316', '#a855f7'], // pie slices
+  bg: '#0f172a',
+  card: '#1e293b',
+  text: '#e5e7eb',
+  muted: '#94a3b8',
+  pieColors: ['#38bdf8', '#22c55e', '#f97316', '#a855f7'],
 }
 
 const BMIPieChart = () => {
+  const { data } = useContext(DataContext)
+
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
   const [gender, setGender] = useState('all')
+  const [stoneFilter, setStoneFilter] = useState('all')
   const [filteredData, setFilteredData] = useState([])
-  const { data } = useContext(DataContext)
 
   // ================= FILTER DATA =================
   useEffect(() => {
-    let tempData = data.filter((d) => Number(d.Age) >= minAge && Number(d.Age) <= maxAge)
-    if (gender !== 'all') {
-      tempData = tempData.filter((d) => Number(d.Gender) === Number(gender))
-    }
-    setFilteredData(tempData)
-  }, [minAge, maxAge, gender, data])
+    const temp = data.filter((person) => {
+      const age = Number(person.Age)
+      if (isNaN(age)) return false
+      if (age < minAge || age > maxAge) return false
+
+      if (gender !== 'all' && Number(person.Gender) !== Number(gender)) {
+        return false
+      }
+
+      if (stoneFilter === 'yes') return Number(person['Gallstone Status']) === 1
+      if (stoneFilter === 'no') return Number(person['Gallstone Status']) === 0
+
+      return true
+    })
+
+    setFilteredData(temp)
+  }, [minAge, maxAge, gender, stoneFilter, data])
 
   // ================= BMI CATEGORIES =================
-  const bmiBins = { Underweight: 0, Normal: 0, Overweight: 0, Obese: 0 }
+  const bmiBins = {
+    Underweight: 0,
+    Normal: 0,
+    Overweight: 0,
+    Obese: 0,
+  }
+
   filteredData.forEach((item) => {
-    const bmi = Number(item['Body Mass Index (BMI)'])
+    const bmi = Number(item.BMI || item['Body Mass Index (BMI)'])
     if (!isNaN(bmi)) {
       if (bmi < 18.5) bmiBins.Underweight++
       else if (bmi < 25) bmiBins.Normal++
@@ -39,7 +58,11 @@ const BMIPieChart = () => {
       else bmiBins.Obese++
     }
   })
-  const chartData = Object.entries(bmiBins).map(([name, value]) => ({ name, value }))
+
+  const chartData = Object.entries(bmiBins).map(([name, value]) => ({
+    name,
+    value,
+  }))
 
   // ================= STYLES =================
   const cardStyle = {
@@ -68,14 +91,10 @@ const BMIPieChart = () => {
     justifyContent: 'center',
   }
 
-  const filterItemStyle = { display: 'flex', flexDirection: 'column', width: 150 }
-
-  const titleStyle = {
-    textAlign: 'center',
-    marginBottom: 15,
-    fontWeight: 600,
-    color: THEME.text,
-    fontSize: 16,
+  const filterItemStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    width: 150,
   }
 
   return (
@@ -83,7 +102,7 @@ const BMIPieChart = () => {
       {/* ================= FILTERS ================= */}
       <div style={filterContainerStyle}>
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Min Age</label>
+          <label>Min Age</label>
           <input
             type="number"
             value={minAge}
@@ -93,7 +112,7 @@ const BMIPieChart = () => {
         </div>
 
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Max Age</label>
+          <label>Max Age</label>
           <input
             type="number"
             value={maxAge}
@@ -103,46 +122,48 @@ const BMIPieChart = () => {
         </div>
 
         <div style={filterItemStyle}>
-          <label style={{ marginBottom: 5 }}>Gender</label>
+          <label>Gender</label>
           <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
             <option value="all">All</option>
             <option value="0">Male</option>
             <option value="1">Female</option>
           </select>
         </div>
+
+        <div style={filterItemStyle}>
+          <label>Gallstone</label>
+          <select
+            value={stoneFilter}
+            onChange={(e) => setStoneFilter(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="all">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
       </div>
 
       {/* ================= PIE CHART ================= */}
       <div style={{ width: '100%', height: 320 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer>
           <PieChart>
             <Pie
               data={chartData}
+              dataKey="value"
               cx="50%"
               cy="50%"
               outerRadius="80%"
-              labelLine={false}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              dataKey="value"
+              label={({ name, percent }) =>
+                percent > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
+              }
             >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={index}
-                  fill={THEME.pieColors[index % THEME.pieColors.length]}
-                  stroke={THEME.bg}
-                />
+              {chartData.map((_, index) => (
+                <Cell key={index} fill={THEME.pieColors[index % THEME.pieColors.length]} />
               ))}
             </Pie>
-            <Tooltip
-              contentStyle={{
-                borderRadius: 10,
-                border: `1px solid ${THEME.accent1}`,
-                backgroundColor: THEME.card,
-                color: THEME.text,
-                fontSize: '0.875rem',
-              }}
-            />
-            <Legend wrapperStyle={{ color: THEME.text, fontSize: '0.875rem' }} />
+            <Tooltip />
+            <Legend />
           </PieChart>
         </ResponsiveContainer>
       </div>
