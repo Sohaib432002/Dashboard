@@ -107,7 +107,7 @@ const BMIPieChart = () => {
       </div>
 
       <div className="chart-wrap">
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}

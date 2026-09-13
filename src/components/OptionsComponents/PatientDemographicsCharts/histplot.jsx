@@ -76,7 +76,7 @@ const Histogram = () => {
       </div>
 
       <div className="chart-wrap">
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart data={ageBins}>
             <XAxis dataKey="range" stroke={THEME.text} />
             <YAxis stroke={THEME.text} />
