@@ -14,17 +14,15 @@ import {
 import Loader from '../LoadingSpinner'
 import { DataContext } from '../useContext'
 
-/* ================= THEME ================= */
 const THEME = {
   bg: '#0f172a',
   card: '#020617',
-  grid: '#1e293b',
   text: '#e5e7eb',
   muted: '#94a3b8',
-  accent1: '#38bdf8', // Blue
-  accent2: '#22c55e', // Green
-  accent3: '#f97316', // Orange
-  accent4: '#a855f7', // Purple
+  accent1: '#38bdf8',
+  accent2: '#22c55e',
+  accent3: '#f97316',
+  accent4: '#a855f7',
 }
 
 const PIE_COLORS = [THEME.accent1, THEME.accent2]
@@ -33,17 +31,16 @@ const BAR_COLORS = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 const IncidencePrevalence = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
-  const [gender, setGender] = useState('All') // new gender filter
-  const [gallstoneFilter, setGallstoneFilter] = useState('All') // new gallstone filter
+  const [gender, setGender] = useState('All')
+  const [gallstoneFilter, setGallstoneFilter] = useState('All')
   const { data } = useContext(DataContext)
 
-  /* ================= FILTER DATA ================= */
   const filtered = useMemo(
     () =>
       data.filter((item) => {
         const age = Number(item.Age || 0)
-        const genderVal = Number(item.Gender) // 0 = Male, 1 = Female
-        const gallstoneVal = Number(item['Gallstone Status'] || 0) // 1 = Yes, 0 = No
+        const genderVal = Number(item.Gender)
+        const gallstoneVal = Number(item['Gallstone Status'] || 0)
         const ageOk = age >= minAge && age <= maxAge
         const genderOk =
           gender === 'All' ? true : gender === 'Male' ? genderVal === 0 : genderVal === 1
@@ -51,17 +48,16 @@ const IncidencePrevalence = () => {
           gallstoneFilter === 'All'
             ? true
             : gallstoneFilter === 'Yes'
-            ? gallstoneVal === 1
-            : gallstoneFilter === 'No'
-            ? gallstoneVal === 0
-            : true
+              ? gallstoneVal === 1
+              : gallstoneFilter === 'No'
+                ? gallstoneVal === 0
+                : true
 
         return ageOk && genderOk && gallstoneOk
       }),
     [data, minAge, maxAge, gender, gallstoneFilter]
   )
 
-  /* ================= PIE DATA ================= */
   const pieData = useMemo(() => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
@@ -70,19 +66,16 @@ const IncidencePrevalence = () => {
       else counts.No++
     })
 
-    // agar filtered me koi bhi patient nahi hai, phir bhi 0 show kar do
     return [
       { name: 'Yes', value: counts.Yes },
       { name: 'No', value: counts.No },
     ]
   }, [filtered])
 
-  /* ================= BAR DATA ================= */
   const barData = useMemo(() => {
     const bins = { '0-30': 0, '31-40': 0, '41-50': 0, '51-60': 0, '61+': 0 }
     filtered.forEach((item) => {
       const age = Number(item.Age || 0)
-      // simply count all filtered patients (Gallstone Yes or No)
       if (age <= 30) bins['0-30']++
       else if (age <= 40) bins['31-40']++
       else if (age <= 50) bins['41-50']++
@@ -102,85 +95,51 @@ const IncidencePrevalence = () => {
   const prevalencePercent =
     totalPatients > 0 ? ((totalGallstone / totalPatients) * 100).toFixed(1) : 0
 
-  /* ================= STYLES ================= */
-  const cardStyle = {
-    background: THEME.card,
-    borderRadius: 16,
-    padding: 20,
-    color: THEME.text,
-    boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
-  }
-
-  const inputStyle = {
-    padding: '8px 12px',
-    borderRadius: 8,
-    marginRight: 15,
-    background: THEME.bg,
-    color: THEME.text,
-    border: `1px solid ${THEME.accent1}`,
-  }
-
   return (
-    <div
-      style={{
-        padding: 25,
-        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
-        minHeight: '100vh',
-      }}
-    >
-      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>
-        Gallstone Incidence & Prevalence
-      </h2>
+    <div className="page">
+      <h2 className="page-title">Gallstone Incidence & Prevalence</h2>
 
-      {/* ================= FILTERS ================= */}
-      <div
-        style={{
-          ...cardStyle,
-          display: 'flex',
-          gap: 20,
-          flexWrap: 'wrap',
-          marginBottom: 30,
-        }}
-      >
-        {/* Min Age */}
-        <div>
-          <label>Min Age:</label>
+      <div className="card filter-row mb-6">
+        <div className="filter-item">
+          <label htmlFor="inc-min-age">Min Age</label>
           <input
+            id="inc-min-age"
             type="number"
             value={minAge}
             onChange={(e) => setMinAge(Number(e.target.value))}
-            style={inputStyle}
+            className="filter-control"
           />
         </div>
-
-        {/* Max Age */}
-        <div>
-          <label>Max Age:</label>
+        <div className="filter-item">
+          <label htmlFor="inc-max-age">Max Age</label>
           <input
+            id="inc-max-age"
             type="number"
             value={maxAge}
             onChange={(e) => setMaxAge(Number(e.target.value))}
-            style={inputStyle}
+            className="filter-control"
           />
         </div>
-
-        {/* Gender */}
-        <div>
-          <label>Gender:</label>
-          <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
+        <div className="filter-item">
+          <label htmlFor="inc-gender">Gender</label>
+          <select
+            id="inc-gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="filter-control"
+          >
             <option value="All">All</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
         </div>
-
-        {/* Gallstone Status */}
-        <div>
-          <label>Gallstone Status:</label>
+        <div className="filter-item">
+          <label htmlFor="inc-gallstone">Gallstone Status</label>
           <select
+            id="inc-gallstone"
             value={gallstoneFilter}
             onChange={(e) => setGallstoneFilter(e.target.value)}
-            style={inputStyle}
+            className="filter-control"
           >
             <option value="All">All</option>
             <option value="Yes">Yes</option>
@@ -189,66 +148,66 @@ const IncidencePrevalence = () => {
         </div>
       </div>
 
-      {/* ================= CHARTS ================= */}
-      <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* PIE CHART */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Overall Prevalence</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {pieData.map((_, index) => (
-                  <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${THEME.accent1}`,
-                  color: THEME.text,
-                }}
-              />
-              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
-            </PieChart>
-          </ResponsiveContainer>
+      <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="card">
+          <h3 className="mb-2 text-center font-semibold text-sky-400">Overall Prevalence</h3>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="70%"
+                  label={({ name, value }) => `${name}: ${value}`}
+                >
+                  {pieData.map((_, index) => (
+                    <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: THEME.card,
+                    border: `1px solid ${THEME.accent1}`,
+                    color: THEME.text,
+                  }}
+                />
+                <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* BAR CHART */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>Prevalence by Age Group</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={barData}>
-              <XAxis dataKey="ageRange" stroke={THEME.muted} />
-              <YAxis stroke={THEME.muted} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${THEME.accent2}`,
-                  color: THEME.text,
-                }}
-              />
-              <Legend wrapperStyle={{ color: THEME.text }} />
-              <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                {barData.map((_, index) => (
-                  <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="card">
+          <h3 className="mb-2 text-center font-semibold text-green-400">Prevalence by Age Group</h3>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData}>
+                <XAxis dataKey="ageRange" stroke={THEME.muted} />
+                <YAxis stroke={THEME.muted} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: THEME.card,
+                    border: `1px solid ${THEME.accent2}`,
+                    color: THEME.text,
+                  }}
+                />
+                <Legend wrapperStyle={{ color: THEME.text }} />
+                <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                  {barData.map((_, index) => (
+                    <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* ================= ANALYSIS ================= */}
-      <div style={{ ...cardStyle }}>
-        <h3 style={{ color: THEME.accent3, marginBottom: 10 }}>Analysis & Summary</h3>
+      <div className="card">
+        <h3 className="mb-2 font-semibold text-orange-400">Analysis & Summary</h3>
         <p>
           Total patients in selected age range: <strong>{totalPatients}</strong>
         </p>
@@ -260,7 +219,7 @@ const IncidencePrevalence = () => {
         </p>
         <p>The bar chart shows which age ranges have higher prevalence.</p>
         <p>Filters dynamically update charts and statistics.</p>
-        <p style={{ fontSize: 12, color: THEME.muted, marginTop: 10 }}>
+        <p className="mt-2 text-xs text-slate-400">
           *Incidence analysis requires time-based data. Current dataset supports prevalence only.
         </p>
       </div>

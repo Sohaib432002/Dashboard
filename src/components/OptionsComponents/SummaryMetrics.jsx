@@ -1,31 +1,17 @@
 import { useContext, useMemo, useState } from 'react'
 import { DataContext } from '../useContext'
 
-// Professional Dashboard Theme (Graph Friendly)
 const colors = {
-  dark: '#0a1128', // main background (deep navy)
-  medium: '#1c2541', // card background
-  light: '#3a86ff', // accent / borders / graph primary
-  veryLight: '#eaf4ff', // text
-  danger: '#ff4d6d', // high risk
-}
-
-const cardStyle = {
-  background: colors.medium,
-  padding: 25,
-  borderRadius: 16,
-  boxShadow: '0 8px 25px rgba(58,134,255,0.25)',
-  color: colors.veryLight,
-  minWidth: 200,
-  textAlign: 'center',
-  margin: 10,
+  medium: '#1c2541',
+  light: '#3a86ff',
+  veryLight: '#eaf4ff',
+  danger: '#ff4d6d',
 }
 
 const SummaryMetrics = () => {
   const [minAge, setMinAge] = useState(20)
   const [maxAge, setMaxAge] = useState(80)
   const [gender, setGender] = useState('all')
-
   const { data } = useContext(DataContext)
 
   const filteredData = useMemo(() => {
@@ -33,9 +19,9 @@ const SummaryMetrics = () => {
       const age = Number(item['Age'] || 0)
       const ageMatch = age >= minAge && age <= maxAge
 
-      let genderValue = item['Gender']
-      if (genderValue === '0' || genderValue?.toLowerCase() === 'male') genderValue = '0'
-      if (genderValue === '1' || genderValue?.toLowerCase() === 'female') genderValue = '1'
+      let genderValue = String(item['Gender'] ?? '')
+      if (genderValue === '0' || genderValue.toLowerCase() === 'male') genderValue = '0'
+      if (genderValue === '1' || genderValue.toLowerCase() === 'female') genderValue = '1'
 
       const genderMatch = gender === 'all' || genderValue === gender
       return ageMatch && genderMatch
@@ -67,67 +53,50 @@ const SummaryMetrics = () => {
     }
   }, [filteredData])
 
+  const metricCards = [
+    ['Total Patients', metrics.totalPatients],
+    ['Average BMI', metrics.avgBMI],
+    ['Average Glucose', metrics.avgGlucose],
+    ['Average Cholesterol', metrics.avgCholesterol],
+    ['Average Fat %', metrics.avgFat],
+    ['Average Lean Mass %', metrics.avgLeanMass],
+  ]
+
   return (
-    <div
-      style={{
-        padding: 30,
-        minHeight: '100vh',
-        background: `linear-gradient(180deg, ${colors.dark}, #14213d)`,
-      }}
-    >
-      {/* HEADER */}
-      <div
-        style={{
-          padding: '25px 30px',
-          background: colors.medium,
-          borderRadius: 16,
-          boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
-          marginBottom: 25,
-          border: `1px solid ${colors.light}33`,
-        }}
-      >
-        <h1 style={{ fontSize: 32, color: colors.veryLight }}>Summary Metrics</h1>
-        <p style={{ opacity: 0.85, color: colors.veryLight }}>
-          Overview of patient health indicators
-        </p>
+    <div className="page">
+      <div className="card mb-6">
+        <h1 className="page-title mb-0">Summary Metrics</h1>
+        <p className="page-subtitle">Overview of patient health indicators</p>
       </div>
 
-      {/* FILTERS */}
-      <div style={{ display: 'flex', gap: 30, flexWrap: 'wrap', marginBottom: 30 }}>
-        {['Min Age', 'Max Age'].map((label, idx) => (
-          <div key={label}>
-            <label style={{ fontWeight: 'bold', color: colors.veryLight }}>{label}</label>
-            <input
-              type="number"
-              value={idx === 0 ? minAge : maxAge}
-              onChange={(e) =>
-                idx === 0 ? setMinAge(Number(e.target.value)) : setMaxAge(Number(e.target.value))
-              }
-              style={{
-                marginLeft: 10,
-                padding: 8,
-                borderRadius: 8,
-                border: `1px solid ${colors.light}`,
-                background: colors.dark,
-                color: colors.veryLight,
-              }}
-            />
-          </div>
-        ))}
-
-        <div>
-          <label style={{ fontWeight: 'bold', color: colors.veryLight }}>Gender</label>
+      <div className="filter-row mb-6">
+        <div className="filter-item">
+          <label htmlFor="sm-min-age">Min Age</label>
+          <input
+            id="sm-min-age"
+            type="number"
+            value={minAge}
+            onChange={(e) => setMinAge(Number(e.target.value))}
+            className="filter-control"
+          />
+        </div>
+        <div className="filter-item">
+          <label htmlFor="sm-max-age">Max Age</label>
+          <input
+            id="sm-max-age"
+            type="number"
+            value={maxAge}
+            onChange={(e) => setMaxAge(Number(e.target.value))}
+            className="filter-control"
+          />
+        </div>
+        <div className="filter-item">
+          <label htmlFor="sm-gender">Gender</label>
           <select
+            id="sm-gender"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
-            style={{
-              marginLeft: 10,
-              padding: 8,
-              borderRadius: 8,
-              border: `1px solid ${colors.light}`,
-              background: colors.dark,
-              color: colors.veryLight,
-            }}
+            className="filter-control"
           >
             <option value="all">All</option>
             <option value="0">Male</option>
@@ -136,31 +105,28 @@ const SummaryMetrics = () => {
         </div>
       </div>
 
-      {/* METRICS */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-        {[
-          ['Total Patients', metrics.totalPatients],
-          ['Average BMI', metrics.avgBMI],
-          ['Average Glucose', metrics.avgGlucose],
-          ['Average Cholesterol', metrics.avgCholesterol],
-          ['Average Fat %', metrics.avgFat],
-          ['Average Lean Mass %', metrics.avgLeanMass],
-        ].map(([title, value]) => (
-          <div key={title} style={cardStyle}>
-            <h2>{title}</h2>
-            <p style={{ fontSize: 28 }}>{value || 0}</p>
+      <div className="metric-grid">
+        {metricCards.map(([title, value]) => (
+          <div
+            key={title}
+            className="rounded-2xl p-5 text-center shadow-lg"
+            style={{
+              background: colors.medium,
+              color: colors.veryLight,
+              boxShadow: '0 8px 25px rgba(58,134,255,0.25)',
+            }}
+          >
+            <h2 className="text-base font-semibold sm:text-lg">{title}</h2>
+            <p className="mt-2 text-2xl font-bold sm:text-3xl">{value || 0}</p>
           </div>
         ))}
 
         <div
-          style={{
-            ...cardStyle,
-            background: '#0b132b',
-            color: colors.danger,
-          }}
+          className="rounded-2xl p-5 text-center shadow-lg"
+          style={{ background: '#0b132b', color: colors.danger }}
         >
-          <h2>High Risk Patients</h2>
-          <p style={{ fontSize: 28 }}>{metrics.highRiskCount || 0}</p>
+          <h2 className="text-base font-semibold sm:text-lg">High Risk Patients</h2>
+          <p className="mt-2 text-2xl font-bold sm:text-3xl">{metrics.highRiskCount || 0}</p>
         </div>
       </div>
     </div>

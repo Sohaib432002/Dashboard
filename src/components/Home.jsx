@@ -1,85 +1,81 @@
-import { Menu, X } from 'lucide-react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { Link, Outlet } from 'react-router-dom'
 import DashboardNavbar from './Navbar'
 
-const btnsList = [
-  'PatientDemographics',
-  'StoneCharacteristics',
-  'IncidencePrevalence',
-  'SymptomsClinicalData',
-  'TreatmentData',
-  'LaboratoryResults',
-  'RiskFactors',
-  'Visualizations',
-  'SummaryMetrics',
+const navItems = [
+  { path: 'PatientDemographics', label: 'Patient Demographics' },
+  { path: 'StoneCharacteristics', label: 'Stone Characteristics' },
+  { path: 'IncidencePrevalence', label: 'Incidence & Prevalence' },
+  { path: 'SymptomsClinicalData', label: 'Symptoms & Clinical Data' },
+  { path: 'TreatmentData', label: 'Treatment Data' },
+  { path: 'LaboratoryResults', label: 'Laboratory Results' },
+  { path: 'RiskFactors', label: 'Risk Factors' },
+  { path: 'Visualizations', label: 'Visualizations' },
+  { path: 'SummaryMetrics', label: 'Summary Metrics' },
 ]
 
 const Home = () => {
   const [open, setOpen] = useState(false)
+  const location = useLocation()
+
+  const isActivePath = (path) => {
+    const current = location.pathname
+    if (path === 'PatientDemographics') {
+      return current === '/' || current === '/PatientDemographics'
+    }
+    return current === `/${path}`
+  }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-[#000046] to-[#1cb5e0]">
-      {/* Mobile Toggle Button */}
-      <button
-        className="md:hidden fixed top-5 left-4 z-[60] bg-gradient-to-br from-[#000046] to-[#1cb5e0] text-white p-2 rounded-lg shadow"
-        onClick={() => setOpen(!open)}
-      >
-        <Menu size={24} />
-      </button>
-
-      {/* Sidebar Overlay (Mobile) */}
+    <div className="flex h-screen overflow-hidden bg-slate-950">
       {open && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-60 md:hidden"
-          onClick={() => setOpen(!open)}
-        ></div>
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setOpen(false)}
+        />
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-gradient-to-br from-[#000046] to-[#1cb5e0] text-white z-[60]
-          transform transition-transform duration-300
-          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col bg-gradient-to-b from-[#000046] to-[#0e7490] text-white shadow-xl transition-transform duration-300 ${
+          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
       >
-        {/* Close Button for Mobile */}
-        <button
-          className="md:hidden absolute top-4 right-4 text-white"
-          onClick={() => setOpen(false)}
-        >
-          <X size={26} />
-        </button>
-
-        {/* Profile Section */}
-        <div className="flex flex-col items-center p-6 mt-6 md:mt-0">
+        <div className="flex shrink-0 flex-col items-center px-5 pb-4 pt-6">
           <img
-            src={`${process.env.PUBLIC_URL}/NU_logo.png`}
-            alt="Logo"
-            className="w-20 h-20 rounded-full mb-3"
+            src={`${process.env.PUBLIC_URL}/NU_logo.svg`}
+            alt="Dashboard logo"
+            className="mb-3 h-16 w-16 rounded-full border border-white/30 bg-white/10 object-cover"
           />
-          <h1 className="text-lg font-bold text-center">Data Analysis Dashboard</h1>
+          <h1 className="px-1 text-center text-base font-bold leading-snug">
+            Data Analysis Dashboard
+          </h1>
         </div>
 
-        {/* Menu Links */}
-        <div className="flex-1 mt-6 px-4 space-y-3 overflow-y-auto pb-10">
-          {btnsList.map((item) => (
-            <Link key={item} to={`/${item}`} onClick={() => setOpen(false)}>
-              <div className="bg-gradient-to-br from-[#000046] to-[#1cb5e0] my-2 border border-white hover:brightness-125 transition-colors rounded-lg cursor-pointer">
-                <button className="w-full text-left px-4 py-3 font-medium hover:text-white">
-                  {item}
-                </button>
-              </div>
-            </Link>
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={`/${item.path}`}
+              onClick={() => setOpen(false)}
+              className={`sidebar-link block rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                isActivePath(item.path)
+                  ? 'border-white bg-white/20 text-white'
+                  : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/15'
+              }`}
+            >
+              {item.label}
+            </NavLink>
           ))}
-        </div>
-      </div>
+        </nav>
+      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <DashboardNavbar />
-        <Outlet />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <DashboardNavbar sidebarOpen={open} toggleSidebar={() => setOpen((value) => !value)} />
+        <main className="min-w-0 flex-1 overflow-auto">
+          <Outlet />
+        </main>
       </div>
     </div>
   )

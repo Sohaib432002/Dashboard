@@ -9,7 +9,6 @@ import SummaryMetrics from "./components/OptionsComponents/SummaryMetrics";
 import SymptomsClinicalData from "./components/OptionsComponents/SymptomsClinicalData";
 import TreatmentData from "./components/OptionsComponents/TreatmentData";
 import Visualizations from "./components/OptionsComponents/Visualizations";
-import "./index.css";
 
 const router = createHashRouter([
   {

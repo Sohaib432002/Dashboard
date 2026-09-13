@@ -1,51 +1,70 @@
-import { useState } from 'react'
-import { FiMenu } from 'react-icons/fi'
+import { useEffect, useRef, useState } from 'react'
+import { FiMenu, FiX } from 'react-icons/fi'
 
-const DashboardNavbar = ({ toggleSidebar }) => {
+const DashboardNavbar = ({ sidebarOpen, toggleSidebar }) => {
   const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   return (
-    <nav className="w-full z-50 bg-gradient-to-br from-[#000046] to-[#1cb5e0] backdrop-blur-md shadow-md border-b border-[#1cb5e0] sticky top-0">
-      <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3">
-        {/* Sidebar Toggle Button */}
+    <nav className="sticky top-0 z-30 w-full border-b border-cyan-300/30 bg-gradient-to-r from-[#000046] to-[#1cb5e0] shadow-md">
+      <div className="flex min-h-[64px] items-center gap-3 px-3 py-3 sm:px-5">
         <button
-          className="p-2 rounded-lg hover:brightness-110 transition-colors md:hidden"
+          type="button"
+          className="shrink-0 rounded-lg p-2 text-white hover:bg-white/10 md:hidden"
           onClick={toggleSidebar}
+          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
         >
-          <FiMenu size={24} className="text-white" />
+          {sidebarOpen ? <FiX size={22} /> : <FiMenu size={22} />}
         </button>
 
-        {/* Dashboard Title */}
-        <h1 className="flex-1 text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-white drop-shadow-sm text-center md:text-left">
-          Identifying high-risk patients for gallstones and related metabolic disorders
-        </h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-sm font-semibold leading-snug tracking-wide text-white sm:text-base md:text-xl">
+            <span className="sm:hidden">Gallstone Risk Dashboard</span>
+            <span className="hidden sm:inline">
+              Identifying High-Risk Patients for Gallstones and Related Metabolic Disorders
+            </span>
+          </h1>
+        </div>
 
-        {/* Right Side Icons */}
-        <div className="flex items-center gap-4 sm:gap-6 mt-2 md:mt-0">
-          {/* Profile */}
-          <div className="flex items-center gap-2 cursor-pointer relative">
+        <div className="relative shrink-0" ref={dropdownRef}>
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-full p-1 pr-2 hover:bg-white/10"
+            onClick={() => setShowDropdown((value) => !value)}
+            aria-haspopup="menu"
+            aria-expanded={showDropdown}
+          >
             <img
-              src={`${process.env.PUBLIC_URL}/profile pic.png`}
-              alt="profile"
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+              src={`${process.env.PUBLIC_URL}/profile.svg`}
+              alt="Sohaib"
+              className="h-9 w-9 rounded-full border-2 border-white object-cover shadow-sm"
             />
-            <span className="hidden sm:block font-semibold text-white">Sohaib</span>
+            <span className="hidden font-semibold text-white sm:block">Sohaib</span>
+          </button>
 
-            {/* Dropdown */}
-            {showDropdown && (
-              <div className="absolute right-0 top-12 flex flex-col bg-white shadow-lg rounded-lg w-40 p-2 text-[#000046] border border-[#1cb5e0]">
-                <button className="text-left px-3 py-2 hover:bg-gradient-to-br hover:from-[#000046]/10 hover:to-[#1cb5e0]/10 rounded">
-                  Profile
-                </button>
-                <button className="text-left px-3 py-2 hover:bg-gradient-to-br hover:from-[#000046]/10 hover:to-[#1cb5e0]/10 rounded">
-                  Settings
-                </button>
-                <button className="text-left px-3 py-2 hover:bg-gradient-to-br hover:from-[#FF0000]/20 hover:to-[#FF4D4D]/20 rounded text-red-600">
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+          {showDropdown && (
+            <div className="absolute right-0 top-12 z-50 flex w-40 flex-col rounded-lg border border-[#1cb5e0] bg-white p-2 text-[#000046] shadow-lg">
+              <button type="button" className="rounded px-3 py-2 text-left hover:bg-sky-50">
+                Profile
+              </button>
+              <button type="button" className="rounded px-3 py-2 text-left hover:bg-sky-50">
+                Settings
+              </button>
+              <button type="button" className="rounded px-3 py-2 text-left text-red-600 hover:bg-red-50">
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

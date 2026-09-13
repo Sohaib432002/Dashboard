@@ -10,9 +10,7 @@ import {
 } from 'recharts'
 import { DataContext } from '../useContext'
 
-/* ================= SAME THEME ================= */
 const THEME = {
-  bg: '#0f172a',
   card: '#020617',
   grid: '#1e293b',
   text: '#e5e7eb',
@@ -23,49 +21,29 @@ const THEME = {
   accent4: '#a855f7',
 }
 
-/* ===== STYLES (ONLY COLORS CHANGED) ===== */
-const cardStyle = {
-  background: THEME.card,
-  padding: 25,
-  borderRadius: 16,
-  boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
-  color: THEME.text,
-  marginBottom: 30,
-}
-
-const filterInputStyle = {
-  padding: '8px 12px',
-  borderRadius: 8,
-  marginRight: 15,
-  background: THEME.bg,
-  color: THEME.text,
-  border: `1px solid ${THEME.accent1}`,
-}
-
 const LaboratoryResults = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
   const [gender, setGender] = useState('all')
   const [diabetes, setDiabetes] = useState('all')
   const [comorbidity, setComorbidity] = useState('all')
-  const [gallstone, setGallstone] = useState('all') // NEW FILTER
-
+  const [gallstone, setGallstone] = useState('all')
   const { data } = useContext(DataContext)
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const age = Number(item['Age'] || 0)
 
-      let genderValue = item['Gender']
-      if (genderValue === '0' || genderValue?.toLowerCase() === 'male') genderValue = '0'
-      if (genderValue === '1' || genderValue?.toLowerCase() === 'female') genderValue = '1'
+      let genderValue = String(item['Gender'] ?? '')
+      if (genderValue === '0' || genderValue.toLowerCase() === 'male') genderValue = '0'
+      if (genderValue === '1' || genderValue.toLowerCase() === 'female') genderValue = '1'
 
       const diabetesValue = Number(item['Diabetes Mellitus (DM)'] || 0)
       const comorbValue = Number(item['Comorbidity'] || 0)
 
-      let gsValue = item['Gallstone Status']
-      if (gsValue === '1' || gsValue?.toLowerCase() === 'yes') gsValue = '1'
-      if (gsValue === '0' || gsValue?.toLowerCase() === 'no') gsValue = '0'
+      let gsValue = String(item['Gallstone Status'] ?? '')
+      if (gsValue === '1' || gsValue.toLowerCase() === 'yes') gsValue = '1'
+      if (gsValue === '0' || gsValue.toLowerCase() === 'no') gsValue = '0'
 
       return (
         age >= minAge &&
@@ -89,83 +67,84 @@ const LaboratoryResults = () => {
   const ldlData = useMemo(() => makeChartData('Low Density Lipoprotein (LDL)'), [filteredData])
   const hdlData = useMemo(() => makeChartData('High Density Lipoprotein (HDL)'), [filteredData])
 
-  return (
-    <div
-      style={{
-        padding: 25,
-        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
-        minHeight: '100vh',
-      }}
-    >
-      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>Laboratory Results</h2>
+  const charts = [
+    { title: 'Glucose Levels', data: glucoseData, color: THEME.accent1 },
+    { title: 'Total Cholesterol (TC)', data: cholesterolData, color: THEME.accent2 },
+    { title: 'LDL', data: ldlData, color: THEME.accent3 },
+    { title: 'HDL', data: hdlData, color: THEME.accent4 },
+  ]
 
-      {/* FILTERS */}
-      <div style={{ ...cardStyle, display: 'flex', flexWrap: 'wrap', gap: 20 }}>
-        <div>
-          <label>Min Age:</label>
+  return (
+    <div className="page">
+      <h2 className="page-title">Laboratory Results</h2>
+
+      <div className="card filter-row mb-4">
+        <div className="filter-item">
+          <label htmlFor="lab-min-age">Min Age</label>
           <input
+            id="lab-min-age"
             type="number"
             value={minAge}
             onChange={(e) => setMinAge(Number(e.target.value))}
-            style={filterInputStyle}
+            className="filter-control"
           />
         </div>
-
-        <div>
-          <label>Max Age:</label>
+        <div className="filter-item">
+          <label htmlFor="lab-max-age">Max Age</label>
           <input
+            id="lab-max-age"
             type="number"
             value={maxAge}
             onChange={(e) => setMaxAge(Number(e.target.value))}
-            style={filterInputStyle}
+            className="filter-control"
           />
         </div>
-
-        <div>
-          <label>Gender:</label>
+        <div className="filter-item">
+          <label htmlFor="lab-gender">Gender</label>
           <select
+            id="lab-gender"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
-            style={filterInputStyle}
+            className="filter-control"
           >
             <option value="all">All</option>
             <option value="0">Male</option>
             <option value="1">Female</option>
           </select>
         </div>
-
-        <div>
-          <label>Diabetes (DM):</label>
+        <div className="filter-item">
+          <label htmlFor="lab-diabetes">Diabetes (DM)</label>
           <select
+            id="lab-diabetes"
             value={diabetes}
             onChange={(e) => setDiabetes(e.target.value)}
-            style={filterInputStyle}
+            className="filter-control"
           >
             <option value="all">All</option>
             <option value="0">No</option>
             <option value="1">Yes</option>
           </select>
         </div>
-
-        <div>
-          <label>Comorbidity:</label>
+        <div className="filter-item">
+          <label htmlFor="lab-comorbidity">Comorbidity</label>
           <select
+            id="lab-comorbidity"
             value={comorbidity}
             onChange={(e) => setComorbidity(e.target.value)}
-            style={filterInputStyle}
+            className="filter-control"
           >
             <option value="all">All</option>
             <option value="0">No</option>
             <option value="1">Yes</option>
           </select>
         </div>
-
-        <div>
-          <label>Gallstone:</label>
+        <div className="filter-item">
+          <label htmlFor="lab-gallstone">Gallstone</label>
           <select
+            id="lab-gallstone"
             value={gallstone}
             onChange={(e) => setGallstone(e.target.value)}
-            style={filterInputStyle}
+            className="filter-control"
           >
             <option value="all">All</option>
             <option value="1">Yes</option>
@@ -174,35 +153,35 @@ const LaboratoryResults = () => {
         </div>
       </div>
 
-      {/* PATIENT COUNT */}
-      <div style={{ margin: '15px 0', fontWeight: 600, color: THEME.text }}>
-        Total Patients: {filteredData.length}
-      </div>
+      <div className="mb-4 font-semibold text-slate-100">Total Patients: {filteredData.length}</div>
 
-      {/* CHARTS */}
-      {[
-        { title: 'Glucose Levels', data: glucoseData, color: THEME.accent1 },
-        { title: 'Total Cholesterol (TC)', data: cholesterolData, color: THEME.accent2 },
-        { title: 'LDL', data: ldlData, color: THEME.accent3 },
-        { title: 'HDL', data: hdlData, color: THEME.accent4 },
-      ].map((chart, idx) => (
-        <div key={idx} style={cardStyle}>
-          <h3 style={{ color: chart.color }}>{chart.title}</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chart.data}>
-              <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
-              <XAxis dataKey="id" stroke={THEME.muted} />
-              <YAxis stroke={THEME.muted} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${chart.color}`,
-                  color: THEME.text,
-                }}
-              />
-              <Line type="monotone" dataKey="value" stroke={chart.color} strokeWidth={3} />
-            </LineChart>
-          </ResponsiveContainer>
+      {charts.map((chart) => (
+        <div key={chart.title} className="card mb-6">
+          <h3 className="mb-3 font-semibold" style={{ color: chart.color }}>
+            {chart.title}
+          </h3>
+          <div className="chart-scroll">
+            <div
+              className="chart-wrap"
+              style={{ minWidth: Math.max(280, chart.data.length * 8) }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chart.data}>
+                  <CartesianGrid stroke={THEME.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="id" stroke={THEME.muted} />
+                  <YAxis stroke={THEME.muted} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: THEME.card,
+                      border: `1px solid ${chart.color}`,
+                      color: THEME.text,
+                    }}
+                  />
+                  <Line type="monotone" dataKey="value" stroke={chart.color} strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       ))}
     </div>

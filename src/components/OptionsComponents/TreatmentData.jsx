@@ -1,4 +1,3 @@
-// TreatmentData.jsx
 import { useContext, useMemo, useState } from 'react'
 import {
   Bar,
@@ -15,11 +14,9 @@ import {
 import Loader from '../LoadingSpinner'
 import { DataContext } from '../useContext'
 
-// ================= SAME THEME =================
 const THEME = {
   bg: '#0f172a',
   card: '#020617',
-  grid: '#1e293b',
   text: '#e5e7eb',
   muted: '#94a3b8',
   accent1: '#38bdf8',
@@ -28,32 +25,12 @@ const THEME = {
   accent4: '#a855f7',
 }
 
-// ================= STYLES =================
-const cardStyle = {
-  background: THEME.card,
-  borderRadius: 16,
-  padding: 25,
-  color: THEME.text,
-  boxShadow: '0 10px 25px rgba(56,189,248,0.15)',
-  marginBottom: 30,
-}
-
-const inputStyle = {
-  padding: '8px 12px',
-  borderRadius: 8,
-  marginRight: 15,
-  background: THEME.bg,
-  color: THEME.text,
-  border: `1px solid ${THEME.accent1}`,
-}
-
 const TreatmentData = () => {
   const [minAge, setMinAge] = useState(0)
   const [maxAge, setMaxAge] = useState(100)
-  const [gallstoneFilter, setGallstoneFilter] = useState('All') // New filter
+  const [gallstoneFilter, setGallstoneFilter] = useState('All')
   const { data } = useContext(DataContext)
 
-  /* ================= FILTER DATA ================= */
   const filtered = useMemo(
     () =>
       data.filter((item) => {
@@ -69,7 +46,6 @@ const TreatmentData = () => {
     [data, minAge, maxAge, gallstoneFilter]
   )
 
-  /* ================= PIE DATA: Gallstone Status ================= */
   const pieData = useMemo(() => {
     const counts = { Yes: 0, No: 0 }
     filtered.forEach((item) => {
@@ -82,7 +58,6 @@ const TreatmentData = () => {
     ]
   }, [filtered])
 
-  /* ================= BAR DATA: BMI & TBW ================= */
   const clinicalData = useMemo(
     () =>
       filtered.map((item, idx) => ({
@@ -93,7 +68,6 @@ const TreatmentData = () => {
     [filtered]
   )
 
-  /* ================= PIE DATA: Fat Distribution ================= */
   const fatData = useMemo(() => {
     const counts = { Visceral: 0, Total: 0 }
     filtered.forEach((item) => {
@@ -108,42 +82,41 @@ const TreatmentData = () => {
 
   if (data.length === 0) return <Loader />
 
-  return (
-    <div
-      style={{
-        padding: 25,
-        background: `linear-gradient(to bottom, ${THEME.bg}, #020617)`,
-        minHeight: '100vh',
-      }}
-    >
-      <h2 style={{ color: THEME.text, fontSize: 28, marginBottom: 20 }}>Treatment Data</h2>
+  const chartMinWidth = Math.max(280, clinicalData.length * 16)
+  const palette = [THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4]
 
-      {/* ================= FILTERS ================= */}
-      <div style={{ ...cardStyle, display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 30 }}>
-        <div>
-          <label>Min Age:</label>
+  return (
+    <div className="page">
+      <h2 className="page-title">Treatment Data</h2>
+
+      <div className="card filter-row mb-6">
+        <div className="filter-item">
+          <label htmlFor="td-min-age">Min Age</label>
           <input
+            id="td-min-age"
             type="number"
             value={minAge}
             onChange={(e) => setMinAge(Number(e.target.value))}
-            style={inputStyle}
+            className="filter-control"
           />
         </div>
-        <div>
-          <label>Max Age:</label>
+        <div className="filter-item">
+          <label htmlFor="td-max-age">Max Age</label>
           <input
+            id="td-max-age"
             type="number"
             value={maxAge}
             onChange={(e) => setMaxAge(Number(e.target.value))}
-            style={inputStyle}
+            className="filter-control"
           />
         </div>
-        <div>
-          <label>Gallstone:</label>
+        <div className="filter-item">
+          <label htmlFor="td-gallstone">Gallstone</label>
           <select
+            id="td-gallstone"
             value={gallstoneFilter}
             onChange={(e) => setGallstoneFilter(e.target.value)}
-            style={inputStyle}
+            className="filter-control"
           >
             <option value="All">All</option>
             <option value="Yes">Yes</option>
@@ -152,129 +125,120 @@ const TreatmentData = () => {
         </div>
       </div>
 
-      {/* ================= CHARTS ================= */}
-      <div className="flex flex-col md:flex-row gap-5 mb-5">
-        {/* Gallstone Status Pie */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: THEME.accent1 }}>Gallstone Status</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={[THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4][index % 4]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${THEME.accent1}`,
-                  color: THEME.text,
-                }}
-              />
-              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
-            </PieChart>
-          </ResponsiveContainer>
+      <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="card">
+          <h3 className="mb-2 text-center font-semibold text-sky-400">Gallstone Status</h3>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="70%"
+                  label
+                >
+                  {pieData.map((_, index) => (
+                    <Cell key={index} fill={palette[index % 4]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: THEME.card,
+                    border: `1px solid ${THEME.accent1}`,
+                    color: THEME.text,
+                  }}
+                />
+                <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* BMI & TBW Bar */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: THEME.accent2 }}>BMI & TBW</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={clinicalData}>
-              <XAxis dataKey="name" stroke={THEME.muted} />
-              <YAxis stroke={THEME.muted} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${THEME.accent2}`,
-                  color: THEME.text,
-                }}
-              />
-              <Legend wrapperStyle={{ color: THEME.text }} />
-              <Bar dataKey="BMI" radius={[5, 5, 0, 0]}>
-                {clinicalData.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={[THEME.accent1, THEME.accent2, THEME.accent3, THEME.accent4][index % 4]}
+        <div className="card">
+          <h3 className="mb-2 text-center font-semibold text-green-400">BMI & TBW</h3>
+          <div className="chart-scroll">
+            <div className="h-[260px] sm:h-[300px]" style={{ minWidth: chartMinWidth }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={clinicalData}>
+                  <XAxis dataKey="name" stroke={THEME.muted} />
+                  <YAxis stroke={THEME.muted} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: THEME.card,
+                      border: `1px solid ${THEME.accent2}`,
+                      color: THEME.text,
+                    }}
                   />
-                ))}
-              </Bar>
-              <Bar dataKey="TBW" radius={[5, 5, 0, 0]}>
-                {clinicalData.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={[THEME.accent2, THEME.accent3, THEME.accent4, THEME.accent1][index % 4]}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                  <Legend wrapperStyle={{ color: THEME.text }} />
+                  <Bar dataKey="BMI" radius={[5, 5, 0, 0]}>
+                    {clinicalData.map((_, index) => (
+                      <Cell key={index} fill={palette[index % 4]} />
+                    ))}
+                  </Bar>
+                  <Bar dataKey="TBW" radius={[5, 5, 0, 0]}>
+                    {clinicalData.map((_, index) => (
+                      <Cell key={`tbw-${index}`} fill={palette[(index + 1) % 4]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
-        {/* Fat Distribution Pie */}
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h3 style={{ textAlign: 'center', color: THEME.accent3 }}>Fat Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={fatData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {fatData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={[THEME.accent3, THEME.accent4, THEME.accent1, THEME.accent2][index % 4]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: THEME.card,
-                  border: `1px solid ${THEME.accent3}`,
-                  color: THEME.text,
-                }}
-              />
-              <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="card">
+          <h3 className="mb-2 text-center font-semibold text-orange-400">Fat Distribution</h3>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={fatData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="70%"
+                  label
+                >
+                  {fatData.map((_, index) => (
+                    <Cell key={index} fill={palette[(index + 2) % 4]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: THEME.card,
+                    border: `1px solid ${THEME.accent3}`,
+                    color: THEME.text,
+                  }}
+                />
+                <Legend verticalAlign="bottom" wrapperStyle={{ color: THEME.text }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* ================= INSIGHTS ================= */}
-      <div className="flex flex-col md:flex-row gap-5">
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: THEME.accent1, marginBottom: 10 }}>Gallstone Status Analysis</h4>
-          <p style={{ color: THEME.text }}>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="card">
+          <h4 className="mb-2 font-semibold text-sky-400">Gallstone Status Analysis</h4>
+          <p>
             Shows how many patients have gallstones vs no gallstones in the selected age range and
             filter.
           </p>
         </div>
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: THEME.accent2, marginBottom: 10 }}>BMI & TBW Insights</h4>
-          <p style={{ color: THEME.text }}>
+        <div className="card">
+          <h4 className="mb-2 font-semibold text-green-400">BMI & TBW Insights</h4>
+          <p>
             Compare BMI and Total Body Water for each patient. Helps assess hydration and body
             composition.
           </p>
         </div>
-        <div style={{ ...cardStyle, flex: 1 }}>
-          <h4 style={{ color: THEME.accent3, marginBottom: 10 }}>Fat Distribution Insights</h4>
-          <p style={{ color: THEME.text }}>
+        <div className="card">
+          <h4 className="mb-2 font-semibold text-orange-400">Fat Distribution Insights</h4>
+          <p>
             Shows distribution of visceral fat and total fat among patients. Helps understand
             obesity and risk factors.
           </p>
