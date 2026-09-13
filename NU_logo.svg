@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <circle cx="64" cy="64" r="64" fill="#000046"/>
+  <circle cx="64" cy="64" r="52" fill="#1cb5e0"/>
+  <text x="64" y="76" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="700" fill="#000046">NU</text>
+</svg>
