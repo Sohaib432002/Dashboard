@@ -1,0 +1,7 @@
+node_modules
+build
+.git
+server/data/*.db
+server/data/*.db-*
+Video.mp4
+*.log
