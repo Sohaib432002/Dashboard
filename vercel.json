@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/index.js": { "includeFiles": "server/data/GallStone.csv" }
+  },
+  "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
+}
